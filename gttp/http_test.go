@@ -25,7 +25,7 @@ func TestRequest_Post(t *testing.T) {
 			fields: fields{
 				url:     "https://posthere.io/41c6-4321-855b",
 				headers: map[string]string{"Content-Type": "application/json"},
-				body:    map[string]any{"name": "John Doe"},
+				body:    []byte(`{"name": "John Doe", "data":"bytes"}`),
 			},
 			wantRes: &gttp.Response{
 				Status: 200,
@@ -37,7 +37,7 @@ func TestRequest_Post(t *testing.T) {
 			fields: fields{
 				url:     "https://posthere.io/41c6-4321-855b",
 				headers: map[string]string{"Content-Type": "application/json"},
-				body:    map[string]string{"name": "John Doe"},
+				body:    map[string]string{"name": "John Doe", "data": "map"},
 			},
 			wantRes: &gttp.Response{
 				Status: 200,
