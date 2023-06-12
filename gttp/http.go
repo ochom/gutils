@@ -12,7 +12,7 @@ import (
 // Request sends a request to the specified URL.
 type Request struct {
 	url     string
-	headers map[string]string
+	headers M
 	body    []byte
 	timeOut time.Duration
 }
@@ -23,14 +23,14 @@ type Response struct {
 	Body   []byte
 }
 
-// NewRequest ...
-func NewRequest(url string, headers map[string]string, body []byte) *Request {
-	return NewRequestWithTimeOut(url, headers, body, 30*time.Second)
+// NewRequest creates a new request.
+func NewRequest(url string, headers M, body any) *Request {
+	return NewRequestWithTimeOut(url, headers, body, 10*time.Second)
 }
 
-// NewRequestWithTimeOut ...
-func NewRequestWithTimeOut(url string, headers map[string]string, body []byte, timeOut time.Duration) *Request {
-	return &Request{url, headers, body, timeOut}
+// NewRequestWithTimeOut  creates a new request with a timeout.
+func NewRequestWithTimeOut(url string, headers M, body any, timeOut time.Duration) *Request {
+	return &Request{url: url, headers: headers, timeOut: timeOut, body: toBytes(body)}
 }
 
 // client ...
