@@ -1,4 +1,4 @@
-package http
+package gttp
 
 import (
 	"bytes"
@@ -15,6 +15,12 @@ type Request struct {
 	headers map[string]string
 	body    []byte
 	timeOut time.Duration
+}
+
+// Response is the response of the request.
+type Response struct {
+	Status int
+	Body   []byte
 }
 
 // NewRequest ...
@@ -40,7 +46,7 @@ func (r *Request) client() *http.Client {
 }
 
 // Post sends a POST request to the specified URL.
-func (r *Request) Post() (resBody []byte, status int, err error) {
+func (r *Request) Post() (res *Response, err error) {
 	req, err := http.NewRequest("POST", r.url, bytes.NewBuffer(r.body))
 	if err != nil {
 		return
@@ -53,23 +59,23 @@ func (r *Request) Post() (resBody []byte, status int, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	res, err := r.client().Do(req.WithContext(ctx))
+	reqDo, err := r.client().Do(req.WithContext(ctx))
 	if err != nil {
 		return
 	}
 
-	defer res.Body.Close()
+	defer reqDo.Body.Close()
 
-	bodyBytes, err := io.ReadAll(res.Body)
+	bodyBytes, err := io.ReadAll(reqDo.Body)
 	if err != nil {
 		return
 	}
 
-	return bodyBytes, res.StatusCode, nil
+	return &Response{reqDo.StatusCode, bodyBytes}, nil
 }
 
 // Get sends a GET request to the specified URL.
-func (r *Request) Get() (resBody []byte, status int, err error) {
+func (r *Request) Get() (res *Response, err error) {
 	req, err := http.NewRequest("GET", r.url, nil)
 	if err != nil {
 		return
@@ -82,23 +88,23 @@ func (r *Request) Get() (resBody []byte, status int, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	res, err := r.client().Do(req.WithContext(ctx))
+	reqDo, err := r.client().Do(req.WithContext(ctx))
 	if err != nil {
 		return
 	}
 
-	defer res.Body.Close()
+	defer reqDo.Body.Close()
 
-	bodyBytes, err := io.ReadAll(res.Body)
+	bodyBytes, err := io.ReadAll(reqDo.Body)
 	if err != nil {
 		return
 	}
 
-	return bodyBytes, res.StatusCode, nil
+	return &Response{reqDo.StatusCode, bodyBytes}, nil
 }
 
 // Put sends a PUT request to the specified URL.
-func (r *Request) Put() (resBody []byte, status int, err error) {
+func (r *Request) Put() (res *Response, err error) {
 	req, err := http.NewRequest("PUT", r.url, bytes.NewBuffer(r.body))
 	if err != nil {
 		return
@@ -111,23 +117,23 @@ func (r *Request) Put() (resBody []byte, status int, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	res, err := r.client().Do(req.WithContext(ctx))
+	reqDo, err := r.client().Do(req.WithContext(ctx))
 	if err != nil {
 		return
 	}
 
-	defer res.Body.Close()
+	defer reqDo.Body.Close()
 
-	bodyBytes, err := io.ReadAll(res.Body)
+	bodyBytes, err := io.ReadAll(reqDo.Body)
 	if err != nil {
 		return
 	}
 
-	return bodyBytes, res.StatusCode, nil
+	return &Response{reqDo.StatusCode, bodyBytes}, nil
 }
 
 // Delete sends a DELETE request to the specified URL.
-func (r *Request) Delete() (resBody []byte, status int, err error) {
+func (r *Request) Delete() (res *Response, err error) {
 	req, err := http.NewRequest("DELETE", r.url, nil)
 	if err != nil {
 		return
@@ -140,23 +146,23 @@ func (r *Request) Delete() (resBody []byte, status int, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	res, err := r.client().Do(req.WithContext(ctx))
+	reqDo, err := r.client().Do(req.WithContext(ctx))
 	if err != nil {
 		return
 	}
 
-	defer res.Body.Close()
+	defer reqDo.Body.Close()
 
-	bodyBytes, err := io.ReadAll(res.Body)
+	bodyBytes, err := io.ReadAll(reqDo.Body)
 	if err != nil {
 		return
 	}
 
-	return bodyBytes, res.StatusCode, nil
+	return &Response{reqDo.StatusCode, bodyBytes}, nil
 }
 
 // Custom sends a custom request to the specified URL.
-func (r *Request) Custom(method string) (resBody []byte, status int, err error) {
+func (r *Request) Custom(method string) (res *Response, err error) {
 	req, err := http.NewRequest(method, r.url, bytes.NewBuffer(r.body))
 	if err != nil {
 		return
@@ -169,17 +175,17 @@ func (r *Request) Custom(method string) (resBody []byte, status int, err error) 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	res, err := r.client().Do(req.WithContext(ctx))
+	reqDo, err := r.client().Do(req.WithContext(ctx))
 	if err != nil {
 		return
 	}
 
-	defer res.Body.Close()
+	defer reqDo.Body.Close()
 
-	bodyBytes, err := io.ReadAll(res.Body)
+	bodyBytes, err := io.ReadAll(reqDo.Body)
 	if err != nil {
 		return
 	}
 
-	return bodyBytes, res.StatusCode, nil
+	return &Response{reqDo.StatusCode, bodyBytes}, nil
 }
