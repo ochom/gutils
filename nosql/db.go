@@ -130,3 +130,9 @@ func FindWithLimit[T any](ctx context.Context, filter bson.M, limit int64) ([]*T
 
 	return vs, nil
 }
+
+// Count ...
+func Count[T any](ctx context.Context, filter bson.M) (int64, error) {
+	var v T
+	return Col(v).CountDocuments(ctx, filter)
+}
