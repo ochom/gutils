@@ -75,3 +75,11 @@ func FindWithLimit[T any](query *T, limit int) ([]*T, error) {
 	err := conn.Limit(limit).Find(&data, query).Error
 	return data, err
 }
+
+// Count ...
+func Count[T any](query *T) (int64, error) {
+	var count int64
+	var model T
+	err := conn.Model(&model).Where(query).Count(&count).Error
+	return count, err
+}
