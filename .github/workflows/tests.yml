@@ -19,7 +19,7 @@ jobs:
           mongodb-password: example
 
       - name: Start RabbitMQ
-        run: docker run -d --hostname rabbitmq --name rabbitmq -p 5672:5672 \
+        run: docker run -d -p 5672:5672 \
           -e RABBITMQ_DEFAULT_USER=guest -e RABBITMQ_DEFAULT_PASS=guest \
           ochom/pubsub:latest
 
