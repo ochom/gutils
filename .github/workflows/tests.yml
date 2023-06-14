@@ -18,6 +18,11 @@ jobs:
           mongodb-username: root
           mongodb-password: example
 
+      - name: Start RabbitMQ
+        run: docker run -d --hostname rabbitmq --name rabbitmq -p 5672:5672 \
+          -e RABBITMQ_DEFAULT_USER=guest -e RABBITMQ_DEFAULT_PASS=guest \
+          ochom/pubsub:latest
+
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
