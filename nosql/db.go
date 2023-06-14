@@ -96,7 +96,7 @@ func Delete[T any](ctx context.Context, filter bson.M) error {
 }
 
 // DeleteByID ...
-func DeleteByID[T any](ctx context.Context, v *T, id string) error {
+func DeleteByID[T any](ctx context.Context, id string) error {
 	return Delete[T](ctx, bson.M{"_id": id})
 }
 
