@@ -102,12 +102,12 @@ func DeleteByID[T any](ctx context.Context, v *T, id string) error {
 
 // FindOne ...
 func FindOne[T any](ctx context.Context, filter bson.M) (*T, error) {
-	var t T
-	if err := Col(&t).FindOne(ctx, filter).Decode(&t); err != nil {
+	var v T
+	if err := Col(v).FindOne(ctx, filter).Decode(&v); err != nil {
 		return nil, err
 	}
 
-	return &t, nil
+	return &v, nil
 }
 
 // FindOneByID ...
@@ -118,7 +118,7 @@ func FindOneByID[T any](ctx context.Context, id string) (*T, error) {
 // FindAll ...
 func FindAll[T any](ctx context.Context, filter bson.M) ([]*T, error) {
 	var v T
-	cur, err := Col(&v).Find(ctx, filter)
+	cur, err := Col(v).Find(ctx, filter)
 	if err != nil {
 		return nil, err
 	}

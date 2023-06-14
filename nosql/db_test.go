@@ -30,7 +30,7 @@ func TestCRUD(t *testing.T) {
 	}
 
 	// test update
-	user.Name = "John Doom"
+	user.Name = "John Does"
 	if err := nosql.Update(context.Background(), user); err != nil {
 		t.Fatalf("[update] %s", err.Error())
 	}
@@ -41,7 +41,7 @@ func TestCRUD(t *testing.T) {
 		t.Fatalf("[find one] %s", err.Error())
 	}
 
-	if u.Name != "John Doom" {
+	if u.Name != "John Does" {
 		t.Fatalf("[find one] expected name to be John Doom, got %s", u.Name)
 	}
 
