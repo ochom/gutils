@@ -1,6 +1,7 @@
 package pubsub
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -16,14 +17,14 @@ func TestConsume(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			// name: "test 1",
-			// args: args{
-			// 	queueName: "test",
-			// 	delayed:   true,
-			// 	workerFunc: func(body []byte) {
-			// 		fmt.Println(string(body))
-			// 	},
-			// },
+			name: "test 1",
+			args: args{
+				queueName: "test",
+				delayed:   true,
+				workerFunc: func(body []byte) {
+					fmt.Println(string(body))
+				},
+			},
 		},
 	}
 	for _, tt := range tests {
