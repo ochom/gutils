@@ -31,3 +31,10 @@ func TestGenerateOTP(t *testing.T) {
 		})
 	}
 }
+
+func TestPasswordHash(t *testing.T) {
+	hash := helpers.HashPassword("password")
+	if !helpers.ComparePassword("password", hash) {
+		t.Errorf("PasswordHash() = %v, want %v", hash, "password")
+	}
+}
