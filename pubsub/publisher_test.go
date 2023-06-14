@@ -3,7 +3,11 @@ package pubsub
 import (
 	"testing"
 	"time"
+
+	"github.com/ochom/gutils/helpers"
 )
+
+var env = helpers.GetEnv("ENV", "local")
 
 func TestPublish(t *testing.T) {
 	type args struct {
@@ -25,6 +29,9 @@ func TestPublish(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		if env != "local" {
+			t.Skip("Skipping test in non-local environment")
+		}
 		t.Run(tt.name, func(t *testing.T) {
 			if err := Publish(tt.args.queueName, tt.args.body); (err != nil) != tt.wantErr {
 				t.Errorf("Publish() error = %v, wantErr %v", err, tt.wantErr)
@@ -55,6 +62,9 @@ func TestPublishWithDelay(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		if env != "local" {
+			t.Skip("Skipping test in non-local environment")
+		}
 		t.Run(tt.name, func(t *testing.T) {
 			if err := PublishWithDelay(tt.args.queueName, tt.args.body, tt.args.delay); (err != nil) != tt.wantErr {
 				t.Errorf("PublishWithDelay() error = %v, wantErr %v", err, tt.wantErr)
