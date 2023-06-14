@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"reflect"
+	"strings"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -28,13 +29,30 @@ func Init(dsn, dbName string) error {
 }
 
 // Col returns a collection
-func Col(v interface{}) *mongo.Collection {
-	model, ok := v.(Model)
-	if !ok {
-		panic("object does does not have TableName method")
+func Col(v any) *mongo.Collection {
+	var name string
+	t := reflect.TypeOf(v)
+
+	if t.Kind() == reflect.Ptr {
+		name = t.Elem().Name()
+	} else {
+		name = t.Name()
 	}
 
-	return conn.Collection(model.TableName())
+	if strings.HasSuffix(name, "y") {
+		name = strings.TrimSuffix(name, "y") + "ies"
+	} else {
+		name += "s"
+	}
+
+	// to lowercase
+	name = strings.ToLower(name)
+
+	if name == "" {
+		panic("empty collection name")
+	}
+
+	return conn.Collection(name)
 }
 
 func getIDField(v interface{}) (id string, err error) {
@@ -78,18 +96,18 @@ func Delete[T any](ctx context.Context, filter bson.M) error {
 }
 
 // DeleteByID ...
-func DeleteByID[T any](ctx context.Context, id string) error {
+func DeleteByID[T any](ctx context.Context, v *T, id string) error {
 	return Delete[T](ctx, bson.M{"_id": id})
 }
 
 // FindOne ...
 func FindOne[T any](ctx context.Context, filter bson.M) (*T, error) {
-	var v T
-	if err := Col(v).FindOne(ctx, filter).Decode(&v); err != nil {
+	var t T
+	if err := Col(&t).FindOne(ctx, filter).Decode(&t); err != nil {
 		return nil, err
 	}
 
-	return &v, nil
+	return &t, nil
 }
 
 // FindOneByID ...
@@ -100,7 +118,7 @@ func FindOneByID[T any](ctx context.Context, id string) (*T, error) {
 // FindAll ...
 func FindAll[T any](ctx context.Context, filter bson.M) ([]*T, error) {
 	var v T
-	cur, err := Col(v).Find(ctx, filter)
+	cur, err := Col(&v).Find(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
