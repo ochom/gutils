@@ -61,3 +61,52 @@ func TestCRUD(t *testing.T) {
 	}
 
 }
+
+func TestGetTableName(t *testing.T) {
+	type args struct {
+		name string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			"Student",
+			args{"Student"},
+			"students",
+		},
+		{
+			"Students",
+			args{"Students"},
+			"students",
+		},
+		{
+			"StudentInfo",
+			args{"StudentInfo"},
+			"student_infos",
+		},
+		{
+			"Library",
+			args{"Library"},
+			"libraries",
+		},
+		{
+			"LibraryBook",
+			args{"LibraryBook"},
+			"library_books",
+		},
+		{
+			"LibraryBooks",
+			args{"LibraryBooks"},
+			"library_books",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := nosql.GetTableName(tt.args.name); got != tt.want {
+				t.Errorf("GetTableName() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
