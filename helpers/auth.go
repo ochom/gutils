@@ -1,14 +1,13 @@
-package auth
+package helpers
 
 import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
-	"github.com/ochom/gutils/helpers"
 )
 
 // authSecrete ...
-var authSecrete = helpers.GetEnv("AUTH_SECRET_KEY", "secrete")
+var authSecrete = GetEnv("AUTH_SECRET_KEY", "secrete")
 
 // Token ...
 type Token struct {
