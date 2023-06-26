@@ -3,6 +3,7 @@ module github.com/ochom/gutils
 go 1.20
 
 require (
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/streadway/amqp v1.0.0
 	go.mongodb.org/mongo-driver v1.11.7
 	golang.org/x/crypto v0.9.0
