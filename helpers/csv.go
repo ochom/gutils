@@ -26,18 +26,18 @@ func ParseCSV(file io.Reader) (chan []string, error) {
 }
 
 // ReadFile ...
-func ReadFile(path string) (string, error) {
+func ReadFile(path string) ([]byte, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	defer f.Close()
 
 	b, err := io.ReadAll(f)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return string(b), nil
+	return b, nil
 }
