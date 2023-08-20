@@ -6,8 +6,10 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-// authSecrete ...
-var authSecrete = GetEnv("AUTH_SECRET_KEY", "secrete")
+// getAuthSecrete ...
+func getAuthSecrete() string {
+	return GetEnv("AUTH_SECRET_KEY", "secrete")
+}
 
 // Token ...
 type Token struct {
@@ -40,7 +42,7 @@ func GenerateAuthTokens(AuthClaims *AuthClaims, tokenExpiry ...time.Duration) (*
 		Issuer:    "ochom",
 	}
 
-	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, AuthClaims).SignedString([]byte(authSecrete))
+	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, AuthClaims).SignedString([]byte(getAuthSecrete()))
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +52,7 @@ func GenerateAuthTokens(AuthClaims *AuthClaims, tokenExpiry ...time.Duration) (*
 		Issuer:    "ochom",
 	}
 
-	refreshToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, AuthClaims).SignedString([]byte(authSecrete))
+	refreshToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, AuthClaims).SignedString([]byte(getAuthSecrete()))
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +64,7 @@ func GenerateAuthTokens(AuthClaims *AuthClaims, tokenExpiry ...time.Duration) (*
 func ValidateToken(token string) (*AuthClaims, error) {
 	AuthClaims := &AuthClaims{}
 	tkn, err := jwt.ParseWithClaims(token, AuthClaims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(authSecrete), nil
+		return []byte(getAuthSecrete()), nil
 	})
 	if err != nil {
 		return nil, err
