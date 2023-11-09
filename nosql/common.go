@@ -52,34 +52,36 @@ func FindOneByID[T any](ctx context.Context, id string) (*T, error) {
 }
 
 // FindAll ...
-func FindAll[T any](ctx context.Context, filter bson.M) ([]*T, error) {
+func FindAll[T any](ctx context.Context, filter bson.M) (vs []*T, err error) {
 	var v T
 	cur, err := Col(v).Find(ctx, filter)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	defer cur.Close(ctx)
-	var vs []*T
-	if err := cur.All(ctx, &vs); err != nil {
-		return nil, err
+
+	err = cur.All(ctx, &vs)
+	if err != nil {
+		return
 	}
 
 	return vs, nil
 }
 
 // FindWithLimit ...
-func FindWithLimit[T any](ctx context.Context, filter bson.M, limit int64) ([]*T, error) {
+func FindWithLimit[T any](ctx context.Context, filter bson.M, limit int64) (vs []*T, err error) {
 	var v T
 	cur, err := Col(v).Find(ctx, filter, options.Find().SetLimit(limit))
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	defer cur.Close(ctx)
-	var vs []*T
-	if err := cur.All(ctx, &vs); err != nil {
-		return nil, err
+
+	err = cur.All(ctx, &vs)
+	if err != nil {
+		return
 	}
 
 	return vs, nil
