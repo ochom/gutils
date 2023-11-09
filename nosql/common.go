@@ -54,6 +54,7 @@ func FindOneByID[T any](ctx context.Context, id string) (*T, error) {
 // FindAll ...
 func FindAll[T any](ctx context.Context, filter bson.M) (vs []*T, err error) {
 	var v T
+	vs = []*T{}
 	cur, err := Col(v).Find(ctx, filter)
 	if err != nil {
 		return
@@ -72,6 +73,7 @@ func FindAll[T any](ctx context.Context, filter bson.M) (vs []*T, err error) {
 // FindWithLimit ...
 func FindWithLimit[T any](ctx context.Context, filter bson.M, limit int64) (vs []*T, err error) {
 	var v T
+	vs = []*T{}
 	cur, err := Col(v).Find(ctx, filter, options.Find().SetLimit(limit))
 	if err != nil {
 		return
