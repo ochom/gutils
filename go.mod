@@ -3,6 +3,7 @@ module github.com/ochom/gutils
 go 1.20
 
 require (
+	github.com/gofiber/storage/sqlite3/v2 v2.1.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/streadway/amqp v1.0.0
 	go.mongodb.org/mongo-driver v1.11.7
@@ -22,7 +23,7 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
-	github.com/mattn/go-sqlite3 v1.14.17 // indirect
+	github.com/mattn/go-sqlite3 v1.14.18 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rogpeppe/go-internal v1.10.0 // indirect
