@@ -15,10 +15,16 @@ type Response struct {
 	Body   []byte
 }
 
-// client ...
-func client(timeout ...time.Duration) *http.Client {
+var client *http.Client
+
+// getClient ...
+func getClient(timeout ...time.Duration) *http.Client {
+	if client != nil {
+		return client
+	}
+
 	timeOut := getTimeout(timeout...)
-	return &http.Client{
+	client = &http.Client{
 		Timeout: timeOut,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
@@ -26,6 +32,8 @@ func client(timeout ...time.Duration) *http.Client {
 			},
 		},
 	}
+
+	return client
 }
 
 func getTimeout(timeout ...time.Duration) time.Duration {
@@ -50,7 +58,7 @@ func Post(url string, headers M, body any, timeout ...time.Duration) (res *Respo
 	ctx, cancel := context.WithTimeout(context.Background(), getTimeout(timeout...))
 	defer cancel()
 
-	reqDo, err := client(timeout...).Do(req.WithContext(ctx))
+	reqDo, err := getClient(timeout...).Do(req.WithContext(ctx))
 	if err != nil {
 		return
 	}
@@ -79,7 +87,7 @@ func Get(url string, headers M, timeout ...time.Duration) (res *Response, err er
 	ctx, cancel := context.WithTimeout(context.Background(), getTimeout(timeout...))
 	defer cancel()
 
-	reqDo, err := client(timeout...).Do(req.WithContext(ctx))
+	reqDo, err := getClient(timeout...).Do(req.WithContext(ctx))
 	if err != nil {
 		return
 	}
@@ -108,7 +116,7 @@ func Custom(url, method string, headers M, body any, timeout ...time.Duration) (
 	ctx, cancel := context.WithTimeout(context.Background(), getTimeout(timeout...))
 	defer cancel()
 
-	reqDo, err := client(timeout...).Do(req.WithContext(ctx))
+	reqDo, err := getClient(timeout...).Do(req.WithContext(ctx))
 	if err != nil {
 		return
 	}
