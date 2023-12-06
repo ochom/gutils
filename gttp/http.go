@@ -11,8 +11,11 @@ import (
 
 // Response is the response of the request.
 type Response struct {
+	// Status is the HTTP status code.
 	Status int
-	Body   []byte
+
+	// Body is the response body.
+	Body []byte
 }
 
 var client *http.Client
@@ -27,6 +30,9 @@ func getClient(timeout ...time.Duration) *http.Client {
 	client = &http.Client{
 		Timeout: timeOut,
 		Transport: &http.Transport{
+			MaxIdleConns:        100,
+			MaxIdleConnsPerHost: 100,
+			IdleConnTimeout:     time.Second * 90,
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true,
 			},
