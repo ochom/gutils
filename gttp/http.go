@@ -11,8 +11,11 @@ import (
 
 // Response is the response of the request.
 type Response struct {
+	// Status is the HTTP status code.
 	Status int
-	Body   []byte
+
+	// Body is the response body.
+	Body []byte
 }
 
 var client *http.Client
