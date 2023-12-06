@@ -7,7 +7,7 @@ import (
 	"github.com/ochom/gutils/gttp"
 )
 
-func TestRequest_Post(t *testing.T) {
+func Test_Post(t *testing.T) {
 	type fields struct {
 		url     string
 		headers map[string]string
@@ -21,7 +21,7 @@ func TestRequest_Post(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "TestRequest_Post",
+			name: "Test_Post",
 			fields: fields{
 				url:     "https://posthere.io/41c6-4321-855b",
 				headers: map[string]string{"Content-Type": "application/json"},
@@ -33,7 +33,7 @@ func TestRequest_Post(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "TestRequest_Post",
+			name: "Test_Post",
 			fields: fields{
 				url:     "https://posthere.io/41c6-4321-855b",
 				headers: map[string]string{"Content-Type": "application/json"},
@@ -47,16 +47,14 @@ func TestRequest_Post(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := gttp.NewRequest(tt.fields.url, tt.fields.headers, tt.fields.body)
-
-			gotRes, err := r.Post()
+			gotRes, err := gttp.Post(tt.fields.url, tt.fields.headers, tt.fields.body)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Request.Post() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Post() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
 			if !reflect.DeepEqual(gotRes.Status, tt.wantRes.Status) {
-				t.Errorf("Request.Post() = %v, want %v", gotRes.Status, tt.wantRes.Status)
+				t.Errorf("Post() = %v, want %v", gotRes.Status, tt.wantRes.Status)
 			}
 		})
 	}
