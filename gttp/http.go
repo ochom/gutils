@@ -27,6 +27,9 @@ func getClient(timeout ...time.Duration) *http.Client {
 	client = &http.Client{
 		Timeout: timeOut,
 		Transport: &http.Transport{
+			MaxIdleConns:        100,
+			MaxIdleConnsPerHost: 100,
+			IdleConnTimeout:     time.Second * 90,
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true,
 			},
