@@ -9,34 +9,17 @@ import (
 	"time"
 )
 
-// Request sends a request to the specified URL.
-type Request struct {
-	url     string
-	headers M
-	body    []byte
-	timeOut time.Duration
-}
-
 // Response is the response of the request.
 type Response struct {
 	Status int
 	Body   []byte
 }
 
-// NewRequest creates a new request.
-func NewRequest(url string, headers M, body any) *Request {
-	return NewRequestWithTimeOut(url, headers, body, 10*time.Second)
-}
-
-// NewRequestWithTimeOut  creates a new request with a timeout.
-func NewRequestWithTimeOut(url string, headers M, body any, timeOut time.Duration) *Request {
-	return &Request{url: url, headers: headers, timeOut: timeOut, body: toBytes(body)}
-}
-
 // client ...
-func (r *Request) client() *http.Client {
+func client(timeout ...time.Duration) *http.Client {
+	timeOut := getTimeout(timeout...)
 	return &http.Client{
-		Timeout: r.timeOut,
+		Timeout: timeOut,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true,
@@ -45,21 +28,29 @@ func (r *Request) client() *http.Client {
 	}
 }
 
+func getTimeout(timeout ...time.Duration) time.Duration {
+	if len(timeout) == 0 {
+		return 10 * time.Second
+	}
+
+	return timeout[0]
+}
+
 // Post sends a POST request to the specified URL.
-func (r *Request) Post() (res *Response, err error) {
-	req, err := http.NewRequest("POST", r.url, bytes.NewBuffer(r.body))
+func Post(url string, headers M, body any, timeout ...time.Duration) (res *Response, err error) {
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(toBytes(body)))
 	if err != nil {
 		return
 	}
 
-	for k, v := range r.headers {
+	for k, v := range headers {
 		req.Header.Set(k, v)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), getTimeout(timeout...))
 	defer cancel()
 
-	reqDo, err := r.client().Do(req.WithContext(ctx))
+	reqDo, err := client(timeout...).Do(req.WithContext(ctx))
 	if err != nil {
 		return
 	}
@@ -75,78 +66,20 @@ func (r *Request) Post() (res *Response, err error) {
 }
 
 // Get sends a GET request to the specified URL.
-func (r *Request) Get() (res *Response, err error) {
-	req, err := http.NewRequest("GET", r.url, nil)
+func Get(url string, headers M, timeout ...time.Duration) (res *Response, err error) {
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return
 	}
 
-	for k, v := range r.headers {
+	for k, v := range headers {
 		req.Header.Set(k, v)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), getTimeout(timeout...))
 	defer cancel()
 
-	reqDo, err := r.client().Do(req.WithContext(ctx))
-	if err != nil {
-		return
-	}
-
-	defer reqDo.Body.Close()
-
-	bodyBytes, err := io.ReadAll(reqDo.Body)
-	if err != nil {
-		return
-	}
-
-	return &Response{reqDo.StatusCode, bodyBytes}, nil
-}
-
-// Put sends a PUT request to the specified URL.
-func (r *Request) Put() (res *Response, err error) {
-	req, err := http.NewRequest("PUT", r.url, bytes.NewBuffer(r.body))
-	if err != nil {
-		return
-	}
-
-	for k, v := range r.headers {
-		req.Header.Set(k, v)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	reqDo, err := r.client().Do(req.WithContext(ctx))
-	if err != nil {
-		return
-	}
-
-	defer reqDo.Body.Close()
-
-	bodyBytes, err := io.ReadAll(reqDo.Body)
-	if err != nil {
-		return
-	}
-
-	return &Response{reqDo.StatusCode, bodyBytes}, nil
-}
-
-// Delete sends a DELETE request to the specified URL.
-func (r *Request) Delete() (res *Response, err error) {
-	req, err := http.NewRequest("DELETE", r.url, nil)
-	if err != nil {
-		return
-	}
-
-	for k, v := range r.headers {
-		req.Header.Set(k, v)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	reqDo, err := r.client().Do(req.WithContext(ctx))
+	reqDo, err := client(timeout...).Do(req.WithContext(ctx))
 	if err != nil {
 		return
 	}
@@ -162,20 +95,20 @@ func (r *Request) Delete() (res *Response, err error) {
 }
 
 // Custom sends a custom request to the specified URL.
-func (r *Request) Custom(method string) (res *Response, err error) {
-	req, err := http.NewRequest(method, r.url, bytes.NewBuffer(r.body))
+func Custom(url, method string, headers M, body any, timeout ...time.Duration) (res *Response, err error) {
+	req, err := http.NewRequest(method, url, bytes.NewBuffer(toBytes(body)))
 	if err != nil {
 		return
 	}
 
-	for k, v := range r.headers {
+	for k, v := range headers {
 		req.Header.Set(k, v)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), getTimeout(timeout...))
 	defer cancel()
 
-	reqDo, err := r.client().Do(req.WithContext(ctx))
+	reqDo, err := client(timeout...).Do(req.WithContext(ctx))
 	if err != nil {
 		return
 	}
