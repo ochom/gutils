@@ -8,7 +8,6 @@ import (
 func TestConsume(t *testing.T) {
 	type args struct {
 		queueName  string
-		delayed    bool
 		workerFunc func([]byte)
 	}
 	tests := []struct {
@@ -20,7 +19,6 @@ func TestConsume(t *testing.T) {
 			name: "test 1",
 			args: args{
 				queueName: "test",
-				delayed:   true,
 				workerFunc: func(body []byte) {
 					fmt.Println(string(body))
 				},
@@ -32,7 +30,7 @@ func TestConsume(t *testing.T) {
 			t.Skip("Skipping test in non-local environment")
 		}
 		t.Run(tt.name, func(t *testing.T) {
-			if err := Consume(tt.args.queueName, tt.args.delayed, tt.args.workerFunc); (err != nil) != tt.wantErr {
+			if err := Consume(tt.args.queueName, tt.args.workerFunc); (err != nil) != tt.wantErr {
 				t.Errorf("Consume() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

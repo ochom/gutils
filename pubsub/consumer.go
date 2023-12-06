@@ -17,18 +17,17 @@ func newConsumer(rabbitURL, queueName string) *Consumer {
 }
 
 // Consume consume messages from the channels
-func Consume(queueName string, delayed bool, workerFunc func([]byte)) error {
+func Consume(queueName string, workerFunc func([]byte)) error {
 	c := newConsumer(rabbitURL, queueName)
 	conn, ch, err := initQ(c.url)
 	if err != nil {
 		return fmt.Errorf("failed to initialize a connection: %s", err.Error())
 	}
-
 	defer ch.Close()
 	defer conn.Close()
 
-	if err := bind(ch, c.exchange, c.queue, delayed); err != nil {
-		return err
+	if err := initPubSub(ch, c.exchange, c.queue); err != nil {
+		return fmt.Errorf("failed to initialize a pubsub: %s", err.Error())
 	}
 
 	deliveries, err := ch.Consume(

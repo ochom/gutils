@@ -35,15 +35,17 @@ func initQ(url string) (*amqp.Connection, *amqp.Channel, error) {
 }
 
 // initPubSub ...
-func initPubSub(ch *amqp.Channel, args amqp.Table, channelType, exchangeName, queueName string) error {
+func initPubSub(ch *amqp.Channel, exchangeName, queueName string) error {
 	err := ch.ExchangeDeclare(
-		exchangeName, // name
-		channelType,  // type
-		true,         // durable
-		false,        // auto-deleted
-		false,        // internal
-		false,        // no-wait
-		args,         // arguments
+		exchangeName,        // name
+		"x-delayed-message", // type
+		true,                // durable
+		false,               // auto-deleted
+		false,               // internal
+		false,               // no-wait
+		amqp.Table{
+			"x-delayed-type": "direct",
+		}, // arguments
 	)
 	if err != nil {
 		return fmt.Errorf("exchange Declare: %s", err.Error())
@@ -75,18 +77,4 @@ func initPubSub(ch *amqp.Channel, args amqp.Table, channelType, exchangeName, qu
 	}
 
 	return nil
-}
-
-// bind ...
-func bind(ch *amqp.Channel, exchangeName, queueName string, delayed bool) error {
-	args := make(amqp.Table)
-	if delayed {
-		args["x-delayed-type"] = "direct"
-		channelType := "x-delayed-message"
-		return initPubSub(ch, args, channelType, exchangeName, queueName)
-	}
-
-	args["x-queue-mode"] = "lazy"
-	channelType := "direct"
-	return initPubSub(ch, args, channelType, exchangeName, queueName)
 }
