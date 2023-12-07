@@ -8,6 +8,10 @@ import (
 
 var store *sqlite3.Storage
 
+func init() {
+	store = initCache("", "")
+}
+
 // Init creates a new cache instance
 func Init(dbPath, tableName string) {
 	store = initCache(dbPath, tableName)

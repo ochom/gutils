@@ -9,7 +9,6 @@ import (
 )
 
 func TestSet(t *testing.T) {
-	cache.Init("", "")
 	type args struct {
 		key   string
 		value []byte
@@ -32,7 +31,6 @@ func TestSet(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	cache.Init("", "")
 	type args struct {
 		key string
 	}
