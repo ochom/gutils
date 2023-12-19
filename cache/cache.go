@@ -4,27 +4,19 @@ import (
 	"time"
 
 	"github.com/gofiber/storage/sqlite3/v2"
+	"github.com/ochom/gutils/helpers"
 )
 
 var store *sqlite3.Storage
 
-// Init creates a new cache instance
-func Init(dbPath, tableName string) {
-	store = initCache(dbPath, tableName)
+func init() {
+	database := helpers.GetEnv("CACHE_DB_PATH", "./fiber.sqlite3")
+	table := helpers.GetEnv("CACHE_TABLE_NAME", "fiber_storage")
+	store = initCache(database, table)
 }
 
 // initCache creates a new cache instance
 func initCache(dbPath, tableName string) *sqlite3.Storage {
-	path := dbPath
-	if path == "" {
-		path = "./fiber.sqlite3"
-	}
-
-	name := tableName
-	if name == "" {
-		name = "fiber_storage"
-	}
-
 	return sqlite3.New(sqlite3.Config{
 		Database:        dbPath,
 		Table:           tableName,

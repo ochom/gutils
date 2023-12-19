@@ -21,7 +21,7 @@ func newPublisher(queueName string) *publisher {
 }
 
 // publish ...
-func (p *publisher) publish(body []byte, delay time.Duration, delayed bool) error {
+func (p *publisher) publish(body []byte, delay time.Duration) error {
 	conn, ch, err := initQ(p.url)
 	if err != nil {
 		return err
@@ -30,7 +30,7 @@ func (p *publisher) publish(body []byte, delay time.Duration, delayed bool) erro
 	defer ch.Close()
 	defer conn.Close()
 
-	if err := bind(ch, p.exchange, p.queue, delayed); err != nil {
+	if err := initPubSub(ch, p.exchange, p.queue); err != nil {
 		return err
 	}
 
@@ -56,11 +56,11 @@ func (p *publisher) publish(body []byte, delay time.Duration, delayed bool) erro
 // PublishWithDelay ...
 func PublishWithDelay(queueName string, body []byte, delay time.Duration) error {
 	p := newPublisher(fmt.Sprintf("%s-%s", queuePrefix, queueName))
-	return p.publish(body, delay, true)
+	return p.publish(body, delay)
 }
 
 // Publish ...
 func Publish(queueName string, body []byte) error {
 	p := newPublisher(fmt.Sprintf("%s-%s", queuePrefix, queueName))
-	return p.publish(body, 0, false)
+	return p.publish(body, 0)
 }

@@ -64,17 +64,17 @@ func GenerateOTP(size int) string {
 }
 
 // HashPassword hashes a password
-func HashPassword(password string) []byte {
+func HashPassword(password string) string {
 	bsp, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return []byte{}
+		return ""
 	}
 
-	return bsp
+	return string(bsp)
 }
 
 // ComparePassword compares a password with a hash
-func ComparePassword(hash []byte, password string) bool {
-	err := bcrypt.CompareHashAndPassword(hash, []byte(password))
+func ComparePassword(hashedString string, password string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedString), []byte(password))
 	return err == nil
 }
