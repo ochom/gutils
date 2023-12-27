@@ -12,11 +12,11 @@ var store *sqlite3.Storage
 func init() {
 	database := helpers.GetEnv("CACHE_DB_PATH", "./fiber.sqlite3")
 	table := helpers.GetEnv("CACHE_TABLE_NAME", "fiber_storage")
-	store = initCache(database, table)
+	store = InitCache(database, table)
 }
 
-// initCache creates a new cache instance
-func initCache(dbPath, tableName string) *sqlite3.Storage {
+// InitCache creates a new cache instance
+func InitCache(dbPath, tableName string) *sqlite3.Storage {
 	return sqlite3.New(sqlite3.Config{
 		Database:        dbPath,
 		Table:           tableName,
