@@ -1,30 +1,36 @@
 package cache
 
 import (
+	"runtime"
 	"time"
 
-	"github.com/gofiber/storage/sqlite3/v2"
+	"github.com/gofiber/storage/redis/v3"
 	"github.com/ochom/gutils/helpers"
 )
 
-var store *sqlite3.Storage
+var store *redis.Storage
 
 func init() {
-	database := helpers.GetEnv("CACHE_DB_PATH", "./fiber.sqlite3")
-	table := helpers.GetEnv("CACHE_TABLE_NAME", "fiber_storage")
-	store = InitCache(database, table)
+	HOST := helpers.GetEnv("REDIS_HOST", "127.0.0.1")
+	PORT := helpers.GetEnvInt("REDIS_PORT", 6379)
+	USERNAME := helpers.GetEnv("REDIS_USERNAME", "")
+	PASSWORD := helpers.GetEnv("REDIS_PASSWORD", "")
+	DATABASE := helpers.GetEnvInt("REDIS_DATABASE", 0)
+
+	store = initCache(HOST, PORT, USERNAME, PASSWORD, DATABASE)
 }
 
-// InitCache creates a new cache instance
-func InitCache(dbPath, tableName string) *sqlite3.Storage {
-	return sqlite3.New(sqlite3.Config{
-		Database:        dbPath,
-		Table:           tableName,
-		Reset:           false,
-		GCInterval:      10 * time.Second,
-		MaxOpenConns:    100,
-		MaxIdleConns:    100,
-		ConnMaxLifetime: 1 * time.Second,
+// initCache creates a new cache instance
+func initCache(host string, port int, username, password string, database int) *redis.Storage {
+	return redis.New(redis.Config{
+		Host:      host,
+		Port:      port,
+		Username:  username,
+		Password:  password,
+		Database:  database,
+		Reset:     false,
+		TLSConfig: nil,
+		PoolSize:  10 * runtime.GOMAXPROCS(0),
 	})
 }
 
