@@ -28,14 +28,14 @@ func FindOne[T any](query *T) (*T, error) {
 
 // FindAll ...
 func FindAll[T any](query *T) ([]*T, error) {
-	var data []*T
+	data := []*T{}
 	err := conn.Find(&data, query).Error
 	return data, err
 }
 
 // FindWithLimit ...
 func FindWithLimit[T any](query *T, limit int) ([]*T, error) {
-	var data []*T
+	data := []*T{}
 	err := conn.Limit(limit).Find(&data, query).Error
 	return data, err
 }
