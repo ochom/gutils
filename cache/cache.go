@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"fmt"
 	"runtime"
 	"time"
 
@@ -35,13 +36,27 @@ func initCache(host string, port int, username, password string, database int) *
 }
 
 // Set a key-value pair in the cache
-func Set(key string, value []byte, exp time.Duration) error {
-	return store.Set(key, value, exp)
+func Set[T any](key string, value *T, exp time.Duration) error {
+	return store.Set(key, helpers.ToBytes(value), exp)
 }
 
 // Get a key from the cache
-func Get(key string) ([]byte, error) {
-	return store.Get(key)
+func Get[T any](key string) (v *T, err error) {
+	val, err := store.Get(key)
+	if err != nil {
+		return v, err
+	}
+
+	if len(val) == 0 {
+		return v, fmt.Errorf("key %s not found", key)
+	}
+
+	v, err = helpers.FromBytes[*T](val)
+	if err != nil {
+		return v, err
+	}
+
+	return v, nil
 }
 
 // Has a key in the cache
