@@ -14,12 +14,12 @@ func ToBytes(payload any) []byte {
 	}
 
 	// Check if the payload is already of type string.
-	if stringPayload, ok := payload.(*string); ok {
-		return []byte(*stringPayload)
+	if stringPayload, ok := payload.(string); ok {
+		return []byte(stringPayload)
 	}
 
 	// Marshal the payload to JSON.
-	bytesPayload, err := json.Marshal(payload)
+	bytesPayload, err := json.Marshal(&payload)
 	if err != nil {
 		return nil
 	}

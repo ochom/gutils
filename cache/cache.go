@@ -36,12 +36,12 @@ func initCache(host string, port int, username, password string, database int) *
 }
 
 // Set a key-value pair in the cache
-func Set[T any](key string, value *T, exp time.Duration) error {
+func Set[T any](key string, value T, exp time.Duration) error {
 	return store.Set(key, helpers.ToBytes(value), exp)
 }
 
 // Get a key from the cache
-func Get[T any](key string) (v *T, err error) {
+func Get[T any](key string) (v T, err error) {
 	val, err := store.Get(key)
 	if err != nil {
 		return v, err
@@ -51,7 +51,7 @@ func Get[T any](key string) (v *T, err error) {
 		return v, fmt.Errorf("key %s not found", key)
 	}
 
-	v, err = helpers.FromBytes[*T](val)
+	v, err = helpers.FromBytes[T](val)
 	if err != nil {
 		return v, err
 	}
