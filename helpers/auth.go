@@ -11,22 +11,15 @@ func getAuthSecrete() string {
 	return GetEnv("AUTH_SECRET_KEY", "secrete")
 }
 
-// Token ...
-type Token struct {
-	AccessToken  string `json:"accessToken"`
-	RefreshToken string `json:"refreshToken"`
-}
-
-// AuthClaims is the struct that will be encoded to a JWT.
-type AuthClaims struct {
-	ID    string `json:"id"`
-	Email string `json:"email"`
+// authClaims is the struct that will be encoded to a JWT.
+type authClaims struct {
+	Data map[string]string `json:"data"`
 	jwt.StandardClaims
 }
 
 // GenerateAuthTokens generates both the detailed token and refresh token
 // tokenExpiry is optional and defaults to 3 hours for access token and 7 days for refresh token
-func GenerateAuthTokens(AuthClaims *AuthClaims, tokenExpiry ...time.Duration) (*Token, error) {
+func GenerateAuthTokens(data map[string]string, tokenExpiry ...time.Duration) (string, string, error) {
 	accessTokenExpiry := time.Now().Add(time.Hour * 3).Unix()       // 3 hours
 	refreshTokenExpiry := time.Now().Add(time.Hour * 24 * 7).Unix() // 7 days
 	if len(tokenExpiry) > 0 {
@@ -37,33 +30,34 @@ func GenerateAuthTokens(AuthClaims *AuthClaims, tokenExpiry ...time.Duration) (*
 		refreshTokenExpiry = time.Now().Add(tokenExpiry[1]).Unix()
 	}
 
-	AuthClaims.StandardClaims = jwt.StandardClaims{
+	claims := &authClaims{Data: data}
+	claims.StandardClaims = jwt.StandardClaims{
 		ExpiresAt: accessTokenExpiry,
 		Issuer:    "ochom",
 	}
 
-	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, AuthClaims).SignedString([]byte(getAuthSecrete()))
+	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(getAuthSecrete()))
 	if err != nil {
-		return nil, err
+		return "", "", err
 	}
 
-	AuthClaims.StandardClaims = jwt.StandardClaims{
+	claims.StandardClaims = jwt.StandardClaims{
 		ExpiresAt: refreshTokenExpiry,
 		Issuer:    "ochom",
 	}
 
-	refreshToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, AuthClaims).SignedString([]byte(getAuthSecrete()))
+	refreshToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(getAuthSecrete()))
 	if err != nil {
-		return nil, err
+		return "", "", err
 	}
 
-	return &Token{AccessToken: token, RefreshToken: refreshToken}, nil
+	return token, refreshToken, nil
 }
 
-// ValidateToken validates the token
-func ValidateToken(token string) (*AuthClaims, error) {
-	AuthClaims := &AuthClaims{}
-	tkn, err := jwt.ParseWithClaims(token, AuthClaims, func(token *jwt.Token) (interface{}, error) {
+// GetAuthClaims ...
+func GetAuthClaims(token string) (map[string]string, error) {
+	claims := &authClaims{}
+	tkn, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(getAuthSecrete()), nil
 	})
 	if err != nil {
@@ -72,5 +66,6 @@ func ValidateToken(token string) (*AuthClaims, error) {
 	if !tkn.Valid {
 		return nil, err
 	}
-	return AuthClaims, nil
+
+	return claims.Data, nil
 }
