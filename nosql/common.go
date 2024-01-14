@@ -9,25 +9,28 @@ import (
 
 // Create ...
 func Create[T any](v *T) error {
-	_, err := Col(v).InsertOne(context.Background(), v)
+	ctx := context.Background()
+	_, err := Col(v).InsertOne(ctx, v)
 	return err
 }
 
 // Update ...
 func Update[T any](v *T) error {
+	ctx := context.Background()
 	id, err := getIDField(v)
 	if err != nil {
 		return err
 	}
 
-	_, err = Col(v).ReplaceOne(context.Background(), bson.M{"_id": id}, v)
+	_, err = Col(v).ReplaceOne(ctx, bson.M{"_id": id}, v)
 	return err
 }
 
 // Delete ...
 func Delete[T any](filter bson.M) error {
+	ctx := context.Background()
 	var v T
-	_, err := Col(v).DeleteOne(context.Background(), filter)
+	_, err := Col(v).DeleteOne(ctx, filter)
 	return err
 }
 
@@ -38,8 +41,9 @@ func DeleteByID[T any](id string) error {
 
 // FindOne ...
 func FindOne[T any](filter bson.M) (*T, error) {
+	ctx := context.Background()
 	var v T
-	if err := Col(v).FindOne(context.Background(), filter).Decode(&v); err != nil {
+	if err := Col(v).FindOne(ctx, filter).Decode(&v); err != nil {
 		return nil, err
 	}
 
@@ -53,16 +57,17 @@ func FindOneByID[T any](id string) (*T, error) {
 
 // FindAll ...
 func FindAll[T any](filter bson.M) (vs []*T, err error) {
+	ctx := context.Background()
 	var v T
 	vs = []*T{}
-	cur, err := Col(v).Find(context.Background(), filter)
+	cur, err := Col(v).Find(ctx, filter)
 	if err != nil {
 		return
 	}
 
-	defer cur.Close(context.Background())
+	defer cur.Close(ctx)
 
-	err = cur.All(context.Background(), &vs)
+	err = cur.All(ctx, &vs)
 	if err != nil {
 		return
 	}
@@ -72,16 +77,17 @@ func FindAll[T any](filter bson.M) (vs []*T, err error) {
 
 // FindWithLimit ...
 func FindWithLimit[T any](filter bson.M, limit int64) (vs []*T, err error) {
+	ctx := context.Background()
 	var v T
 	vs = []*T{}
-	cur, err := Col(v).Find(context.Background(), filter, options.Find().SetLimit(limit))
+	cur, err := Col(v).Find(ctx, filter, options.Find().SetLimit(limit))
 	if err != nil {
 		return
 	}
 
-	defer cur.Close(context.Background())
+	defer cur.Close(ctx)
 
-	err = cur.All(context.Background(), &vs)
+	err = cur.All(ctx, &vs)
 	if err != nil {
 		return
 	}
@@ -91,6 +97,7 @@ func FindWithLimit[T any](filter bson.M, limit int64) (vs []*T, err error) {
 
 // Count ...
 func Count[T any](filter bson.M) (int64, error) {
+	ctx := context.Background()
 	var v T
-	return Col(v).CountDocuments(context.Background(), filter)
+	return Col(v).CountDocuments(ctx, filter)
 }
