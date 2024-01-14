@@ -1,7 +1,6 @@
 package nosql_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/ochom/gutils/nosql"
@@ -25,18 +24,18 @@ func TestCRUD(t *testing.T) {
 
 	// test create
 	user := &User{ID: uuid.NewString(), Name: "John Doe"}
-	if err := nosql.Create(context.Background(), user); err != nil {
+	if err := nosql.Create(user); err != nil {
 		t.Fatalf("[create] %s", err.Error())
 	}
 
 	// test update
 	user.Name = "John Does"
-	if err := nosql.Update(context.Background(), user); err != nil {
+	if err := nosql.Update(user); err != nil {
 		t.Fatalf("[update] %s", err.Error())
 	}
 
 	// test find one
-	u, err := nosql.FindOne[User](context.Background(), bson.M{"_id": user.ID})
+	u, err := nosql.FindOne[User](bson.M{"_id": user.ID})
 	if err != nil {
 		t.Fatalf("[find one] %s", err.Error())
 	}
@@ -46,7 +45,7 @@ func TestCRUD(t *testing.T) {
 	}
 
 	// test find all
-	users, err := nosql.FindAll[User](context.Background(), bson.M{"_id": user.ID})
+	users, err := nosql.FindAll[User](bson.M{"_id": user.ID})
 	if err != nil {
 		t.Fatalf("[find all] %s", err.Error())
 	}
@@ -56,7 +55,7 @@ func TestCRUD(t *testing.T) {
 	}
 
 	// test delete
-	if err := nosql.Delete[User](context.Background(), bson.M{"_id": user.ID}); err != nil {
+	if err := nosql.Delete[User](bson.M{"_id": user.ID}); err != nil {
 		t.Fatalf("[delete] %s", err.Error())
 	}
 
