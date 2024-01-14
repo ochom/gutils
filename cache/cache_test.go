@@ -23,7 +23,7 @@ func TestSet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := cache.Set(tt.args.key, tt.args.value, tt.args.exp); (err != nil) != tt.wantErr {
+			if err := cache.Set(tt.args.key, &tt.args.value, tt.args.exp); (err != nil) != tt.wantErr {
 				t.Errorf("Set() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -31,30 +31,28 @@ func TestSet(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	type args struct {
-		key string
-	}
 	tests := []struct {
 		name    string
-		args    args
-		want    []byte
+		key     string
+		want    map[string]string
 		wantErr bool
 	}{
-		{"Get", args{"key"}, []byte("value"), false},
+		{"Get", "key", map[string]string{"key": "value"}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := cache.Set(tt.args.key, tt.want, 1*time.Minute); err != nil {
+			if err := cache.Set(tt.key, &tt.want, 1*time.Minute); err != nil {
 				t.Errorf("Set() error = %v", err)
 			}
 
-			got, err := cache.Get(tt.args.key)
+			got, err := cache.Get[map[string]string](tt.key)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Get() = %v, want %v", got, tt.want)
+
+			if !reflect.DeepEqual(got["key"], tt.want["key"]) {
+				t.Errorf("Get() = %v, want %v", got["key"], tt.want["key"])
 			}
 		})
 	}
