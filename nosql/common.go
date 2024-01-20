@@ -101,3 +101,23 @@ func Count[T any](filter bson.M) (int64, error) {
 	var v T
 	return Col(v).CountDocuments(ctx, filter)
 }
+
+// Pipe ...
+func Pipe[T any](pipeline []bson.M) (vs []*T, err error) {
+	ctx := context.Background()
+	var v T
+	vs = []*T{}
+	cur, err := Col(v).Aggregate(ctx, pipeline)
+	if err != nil {
+		return
+	}
+
+	defer cur.Close(ctx)
+
+	err = cur.All(ctx, &vs)
+	if err != nil {
+		return
+	}
+
+	return vs, nil
+}
