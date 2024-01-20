@@ -18,6 +18,11 @@ jobs:
           mongodb-username: root
           mongodb-password: example
 
+      - name: Start up Redis
+        uses: supercharge/redis-github-action@1.0.0
+        with:
+          redis-version: 6.2.4
+
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
