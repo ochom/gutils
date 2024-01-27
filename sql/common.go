@@ -5,18 +5,8 @@ func Create[T any](data *T) error {
 	return conn.Create(data).Error
 }
 
-// CreateMany ...
-func CreateMany[T any](data []*T) error {
-	return conn.Create(data).Error
-}
-
 // Update ...
 func Update[T any](data *T) error {
-	return conn.Save(data).Error
-}
-
-// UpdateMany ...
-func UpdateMany[T any](data []*T) error {
 	return conn.Save(data).Error
 }
 

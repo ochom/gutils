@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -12,17 +11,6 @@ import (
 func Create[T any](v *T) error {
 	ctx := context.Background()
 	_, err := Col(v).InsertOne(ctx, v)
-	return err
-}
-
-// CreateMany ...
-func CreateMany[T any](vs []*T) error {
-	ctx := context.Background()
-	newData := make([]interface{}, len(vs))
-	for i, v := range vs {
-		newData[i] = v
-	}
-	_, err := Col(vs[0]).InsertMany(ctx, newData)
 	return err
 }
 
@@ -35,23 +23,6 @@ func Update[T any](v *T) error {
 	}
 
 	_, err = Col(v).ReplaceOne(ctx, bson.M{"_id": id}, v)
-	return err
-}
-
-// UpdateMany ...
-func UpdateMany[T any](vs []*T) error {
-	ctx := context.Background()
-	newData := make([]interface{}, len(vs))
-	for i, v := range vs {
-		newData[i] = v
-	}
-
-	_, err := Col(vs[0]).BulkWrite(ctx, []mongo.WriteModel{
-		&mongo.ReplaceOneModel{
-			Filter:      bson.M{"_id": bson.M{"$in": newData}},
-			Replacement: newData,
-		},
-	})
 	return err
 }
 
