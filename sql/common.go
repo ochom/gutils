@@ -47,7 +47,7 @@ func FindAll[T any](query *T) ([]*T, error) {
 // QueryAll ...
 func QueryAll[T any](query interface{}) ([]*T, error) {
 	data := []*T{}
-	err := conn.First(&data, query).Error
+	err := conn.Find(&data, query).Error
 	return data, err
 }
 
