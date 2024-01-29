@@ -16,7 +16,7 @@ type authClaims struct {
 
 // GenerateAuthTokens generates both the detailed token and refresh token
 // tokenExpiry is optional and defaults to 3 hours for access token and 7 days for refresh token
-func GenerateAuthTokens(data map[string]string, tokenExpiry ...time.Duration) (string, string, error) {
+func GenerateAuthTokens(data map[string]string, tokenExpiry ...time.Duration) (map[string]string, error) {
 	accessTokenExpiry := time.Now().Add(time.Hour * 3).Unix()       // 3 hours
 	refreshTokenExpiry := time.Now().Add(time.Hour * 24 * 7).Unix() // 7 days
 	if len(tokenExpiry) > 0 {
@@ -35,7 +35,7 @@ func GenerateAuthTokens(data map[string]string, tokenExpiry ...time.Duration) (s
 
 	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(authSecrete))
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 
 	claims.StandardClaims = jwt.StandardClaims{
@@ -45,10 +45,13 @@ func GenerateAuthTokens(data map[string]string, tokenExpiry ...time.Duration) (s
 
 	refreshToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(authSecrete))
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 
-	return token, refreshToken, nil
+	return map[string]string{
+		"token":        token,
+		"refreshToken": refreshToken,
+	}, nil
 }
 
 // GetAuthClaims ...
