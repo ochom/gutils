@@ -11,12 +11,12 @@ func Update[T any](data *T) error {
 }
 
 // Delete ...
-func Delete[T any](query *T) error {
+func Delete[T any](query interface{}) error {
 	return conn.Delete(query).Error
 }
 
 // FindOne ...
-func FindOne[T any](query *T) (*T, error) {
+func FindOne[T any](query interface{}) (*T, error) {
 	var data T
 	err := conn.First(&data, query).Error
 	if err != nil {
@@ -27,21 +27,21 @@ func FindOne[T any](query *T) (*T, error) {
 }
 
 // FindAll ...
-func FindAll[T any](query *T) ([]*T, error) {
+func FindAll[T any](query interface{}) ([]*T, error) {
 	data := []*T{}
 	err := conn.Find(&data, query).Error
 	return data, err
 }
 
 // FindWithLimit ...
-func FindWithLimit[T any](query *T, limit int) ([]*T, error) {
+func FindWithLimit[T any](query interface{}, limit int) ([]*T, error) {
 	data := []*T{}
 	err := conn.Limit(limit).Find(&data, query).Error
 	return data, err
 }
 
 // Count ...
-func Count[T any](query *T) (int64, error) {
+func Count[T any](query interface{}) (int64, error) {
 	var count int64
 	var model T
 	err := conn.Model(&model).Where(query).Count(&count).Error
