@@ -1,6 +1,6 @@
 module github.com/ochom/gutils
 
-go 1.20
+go 1.22
 
 require (
 	github.com/gofiber/storage/redis/v3 v3.1.0
