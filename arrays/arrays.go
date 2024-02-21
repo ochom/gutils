@@ -1,5 +1,9 @@
 package arrays
 
+// NOTE: This library is not exactly what a Gopher would expect from a Go library.
+// It is a simple implementation of some of the most common array methods in JavaScript.
+// It is intended to be used as a reference for those who are familiar with JavaScript and are learning Go.
+
 // Filter returns a new array with all elements that pass the test implemented by the provided function.
 func Filter[S ~[]E, E any](items S, fn func(E) bool) []E {
 	filteredItems := []E{}
@@ -46,4 +50,11 @@ func Reduce[S, T any](items []S, fn func(T, S) T, acc T) T {
 		acc = fn(acc, value)
 	}
 	return acc
+}
+
+// ForEach executes a provided function once for each array element.
+func ForEach[S any](items []S, fn func(S)) {
+	for _, value := range items {
+		fn(value)
+	}
 }
