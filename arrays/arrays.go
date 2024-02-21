@@ -1,6 +1,6 @@
 package arrays
 
-// NOTE: This library is not exactly what a Gopher would expect from a Go library.
+// !NOTE: This library is not exactly what a Gopher would expect from a Go library.
 // It is a simple implementation of some of the most common array methods in JavaScript.
 // It is intended to be used as a reference for those who are familiar with JavaScript and are learning Go.
 
