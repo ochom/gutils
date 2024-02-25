@@ -56,14 +56,6 @@ func Get(key string) V {
 		return nil
 	}
 
-	if item.expiry > 0 && time.Since(item.createdAt) > item.expiry {
-		delete(memoryCache, key)
-		if item.callBack != nil {
-			item.callBack()
-		}
-		return nil
-	}
-
 	return item.value
 }
 
@@ -72,8 +64,13 @@ func CleanUp() {
 	tk := time.NewTicker(time.Millisecond * 20)
 	for range tk.C {
 		mut.Lock()
-		for key := range memoryCache {
-			_ = Get(key)
+		for key, item := range memoryCache {
+			if item.expiry > 0 && time.Since(item.createdAt) > item.expiry {
+				delete(memoryCache, key)
+				if item.callBack != nil {
+					item.callBack()
+				}
+			}
 		}
 		mut.Unlock()
 	}
