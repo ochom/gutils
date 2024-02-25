@@ -3,7 +3,6 @@ module github.com/ochom/gutils
 go 1.22
 
 require (
-	github.com/gofiber/storage/redis/v3 v3.1.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/streadway/amqp v1.0.0
 	go.mongodb.org/mongo-driver v1.11.7
@@ -15,8 +14,6 @@ require (
 )
 
 require (
-	github.com/cespare/xxhash/v2 v2.2.0 // indirect
-	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -28,8 +25,8 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.18 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/redis/go-redis/v9 v9.3.0 // indirect
 	github.com/rogpeppe/go-internal v1.10.0 // indirect
+	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.1 // indirect
 	github.com/xdg-go/stringprep v1.0.3 // indirect
