@@ -8,10 +8,13 @@ import (
 var memoryCache map[string]cacheItem
 var mut sync.Mutex
 
+// V  is the type of the value to be stored in the cache
+type V []byte
+
 // cacheItem ...
 type cacheItem struct {
 	key       string
-	value     any
+	value     V
 	createdAt time.Time
 	expiry    time.Duration
 	callBack  func()
@@ -23,17 +26,17 @@ func init() {
 }
 
 // Set ...
-func Set(key string, value any) {
+func Set(key string, value V) {
 	SetWithExpiry(key, value, 0)
 }
 
 // SetWithExpiry ...
-func SetWithExpiry(key string, value any, expiry time.Duration) {
+func SetWithExpiry(key string, value V, expiry time.Duration) {
 	SetWithCallback(key, value, expiry, nil)
 }
 
 // SetWithCallback ...
-func SetWithCallback(key string, value any, expiry time.Duration, callback func()) {
+func SetWithCallback(key string, value V, expiry time.Duration, callback func()) {
 	mut.Lock()
 	defer mut.Unlock()
 	item := cacheItem{
@@ -47,7 +50,7 @@ func SetWithCallback(key string, value any, expiry time.Duration, callback func(
 }
 
 // Get ...
-func Get(key string) any {
+func Get(key string) V {
 	item, ok := memoryCache[key]
 	if !ok {
 		return nil
