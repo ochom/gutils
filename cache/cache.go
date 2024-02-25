@@ -1,85 +1,77 @@
 package cache
 
 import (
-	"fmt"
-	"runtime"
+	"sync"
 	"time"
-
-	"github.com/gofiber/storage/redis/v3"
-	"github.com/ochom/gutils/helpers"
 )
 
-var store *redis.Storage
+var memoryCache map[string]cacheItem
+var mut sync.Mutex
+
+// V  is the type of the value to be stored in the cache
+type V []byte
+
+// cacheItem ...
+type cacheItem struct {
+	key       string
+	value     V
+	createdAt time.Time
+	expiry    time.Duration
+	callBack  func()
+}
 
 func init() {
-	HOST := helpers.GetEnv("REDIS_HOST", "127.0.0.1")
-	PORT := helpers.GetEnvInt("REDIS_PORT", 6379)
-	USERNAME := helpers.GetEnv("REDIS_USERNAME", "")
-	PASSWORD := helpers.GetEnv("REDIS_PASSWORD", "")
-	DATABASE := helpers.GetEnvInt("REDIS_DATABASE", 0)
-
-	store = initCache(HOST, PORT, USERNAME, PASSWORD, DATABASE)
+	memoryCache = make(map[string]cacheItem)
+	go CleanUp()
 }
 
-// initCache creates a new cache instance
-func initCache(host string, port int, username, password string, database int) *redis.Storage {
-	return redis.New(redis.Config{
-		Host:      host,
-		Port:      port,
-		Username:  username,
-		Password:  password,
-		Database:  database,
-		Reset:     false,
-		TLSConfig: nil,
-		PoolSize:  10 * runtime.GOMAXPROCS(0),
-	})
+// Set ...
+func Set(key string, value V) {
+	SetWithExpiry(key, value, 0)
 }
 
-// Set a key-value pair in the cache
-func Set[T any](key string, value T, exp time.Duration) error {
-	return store.Set(key, helpers.ToBytes(value), exp)
+// SetWithExpiry ...
+func SetWithExpiry(key string, value V, expiry time.Duration) {
+	SetWithCallback(key, value, expiry, nil)
 }
 
-// Get a key from the cache
-func Get[T any](key string) (v T, err error) {
-	val, err := store.Get(key)
-	if err != nil {
-		return v, err
+// SetWithCallback ...
+func SetWithCallback(key string, value V, expiry time.Duration, callback func()) {
+	mut.Lock()
+	defer mut.Unlock()
+	item := cacheItem{
+		key:       key,
+		value:     value,
+		createdAt: time.Now(),
+		expiry:    expiry,
+		callBack:  callback,
+	}
+	memoryCache[key] = item
+}
+
+// Get ...
+func Get(key string) V {
+	item, ok := memoryCache[key]
+	if !ok {
+		return nil
 	}
 
-	if len(val) == 0 {
-		return v, fmt.Errorf("key %s not found", key)
+	return item.value
+}
+
+// CleanUp deletes expired cache items and calls their callbacks
+func CleanUp() {
+	tk := time.NewTicker(time.Millisecond * 20)
+	for range tk.C {
+		mut.Lock()
+		for key, item := range memoryCache {
+			if item.expiry > 0 && time.Since(item.createdAt) > item.expiry {
+				delete(memoryCache, key)
+				if item.callBack != nil {
+					item.callBack()
+				}
+			}
+		}
+		mut.Unlock()
 	}
-
-	v, err = helpers.FromBytes[T](val)
-	if err != nil {
-		return v, err
-	}
-
-	return v, nil
-}
-
-// Has a key in the cache
-func Has(key string) bool {
-	val, err := store.Get(key)
-	if err != nil || len(val) == 0 {
-		return false
-	}
-
-	return true
-}
-
-// Delete a key from the cache
-func Delete(key string) error {
-	return store.Delete(key)
-}
-
-// Clear the cache
-func Clear() error {
-	return store.Reset()
-}
-
-// Close the cache
-func Close() error {
-	return store.Close()
 }
