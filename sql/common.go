@@ -1,5 +1,7 @@
 package sql
 
+import "gorm.io/gorm"
+
 // Create ...
 func Create[T any](data *T) error {
 	return conn.Create(data).Error
@@ -16,20 +18,9 @@ func Delete[T any](query *T) error {
 }
 
 // FindOne ...
-func FindOne[T any](query *T) (*T, error) {
+func FindOne[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) (*T, error) {
 	var data T
-	err := conn.First(&data, query).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return &data, nil
-}
-
-// QueryOne ...
-func QueryOne[T any](query interface{}) (*T, error) {
-	var data T
-	err := conn.First(&data, query).Error
+	err := conn.Scopes(scopes...).First(&data, query).Error
 	if err != nil {
 		return nil, err
 	}
@@ -38,28 +29,22 @@ func QueryOne[T any](query interface{}) (*T, error) {
 }
 
 // FindAll ...
-func FindAll[T any](query *T) ([]*T, error) {
+func FindAll[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) ([]*T, error) {
 	data := []*T{}
-	err := conn.Find(&data, query).Error
-	return data, err
-}
-
-// QueryAll ...
-func QueryAll[T any](query interface{}) ([]*T, error) {
-	data := []*T{}
-	err := conn.Find(&data, query).Error
+	err := conn.Scopes(scopes...).Find(&data, query).Error
 	return data, err
 }
 
 // FindWithLimit ...
-func FindWithLimit[T any](query *T, limit int) ([]*T, error) {
+func FindWithLimit[T any](query *T, page, limit int, scopes ...func(*gorm.DB) *gorm.DB) ([]*T, error) {
 	data := []*T{}
-	err := conn.Limit(limit).Find(&data, query).Error
+
+	err := conn.Scopes(scopes...).Offset((page-1)*limit).Limit(limit).Find(&data, query).Error
 	return data, err
 }
 
 // Count ...
-func Count[T any](query *T) (int64, error) {
+func Count[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) (int64, error) {
 	var count int64
 	var model T
 	err := conn.Model(&model).Where(query).Count(&count).Error
