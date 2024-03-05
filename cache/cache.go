@@ -51,6 +51,9 @@ func SetWithCallback(key string, value V, expiry time.Duration, callback func())
 
 // Get ...
 func Get(key string) V {
+	mut.Lock()
+	defer mut.Unlock()
+
 	item, ok := memoryCache[key]
 	if !ok {
 		return nil
@@ -63,7 +66,6 @@ func Get(key string) V {
 func CleanUp() {
 	tk := time.NewTicker(time.Millisecond * 20)
 	for range tk.C {
-		mut.Lock()
 		for key, item := range memoryCache {
 			if item.expiry > 0 && time.Since(item.createdAt) > item.expiry {
 				delete(memoryCache, key)
@@ -72,6 +74,5 @@ func CleanUp() {
 				}
 			}
 		}
-		mut.Unlock()
 	}
 }
