@@ -7,8 +7,6 @@ import (
 	"io"
 	"net/http"
 	"time"
-
-	"github.com/ochom/gutils/helpers"
 )
 
 // Response is the response of the request.
@@ -54,7 +52,7 @@ func getTimeout(timeout ...time.Duration) time.Duration {
 
 // Post sends a POST request to the specified URL.
 func Post(url string, headers M, body any, timeout ...time.Duration) (res *Response, err error) {
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(helpers.ToBytes(body)))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(ToBytes(body)))
 	if err != nil {
 		return
 	}
@@ -112,7 +110,7 @@ func Get(url string, headers M, timeout ...time.Duration) (res *Response, err er
 
 // Custom sends a custom request to the specified URL.
 func Custom(url, method string, headers M, body any, timeout ...time.Duration) (res *Response, err error) {
-	req, err := http.NewRequest(method, url, bytes.NewBuffer(helpers.ToBytes(body)))
+	req, err := http.NewRequest(method, url, bytes.NewBuffer(ToBytes(body)))
 	if err != nil {
 		return
 	}
