@@ -13,8 +13,8 @@ func Update[T any](data *T) error {
 }
 
 // Delete ...
-func Delete[T any](query *T) error {
-	return conn.Delete(query).Error
+func Delete[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) error {
+	return conn.Scopes(scopes...).Delete(query).Error
 }
 
 // FindOne ...
@@ -38,7 +38,6 @@ func FindAll[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) ([]*T, error) {
 // FindWithLimit ...
 func FindWithLimit[T any](query *T, page, limit int, scopes ...func(*gorm.DB) *gorm.DB) ([]*T, error) {
 	data := []*T{}
-
 	err := conn.Scopes(scopes...).Offset((page-1)*limit).Limit(limit).Find(&data, query).Error
 	return data, err
 }
@@ -47,6 +46,6 @@ func FindWithLimit[T any](query *T, page, limit int, scopes ...func(*gorm.DB) *g
 func Count[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) (int64, error) {
 	var count int64
 	var model T
-	err := conn.Model(&model).Where(query).Count(&count).Error
+	err := conn.Model(&model).Scopes(scopes...).Where(query).Count(&count).Error
 	return count, err
 }

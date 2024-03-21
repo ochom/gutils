@@ -23,7 +23,7 @@ func TestCRUD(t *testing.T) {
 	initDB(t)
 
 	// test create
-	user := &User{ID: uuid.NewString(), Name: "John Doe"}
+	user := &User{ID: uuid.New(), Name: "John Doe"}
 	if err := nosql.Create(user); err != nil {
 		t.Fatalf("[create] %s", err.Error())
 	}
