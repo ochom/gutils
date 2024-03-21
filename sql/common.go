@@ -13,8 +13,8 @@ func Update[T any](data *T) error {
 }
 
 // Delete ...
-func Delete[T any](query *T) error {
-	return conn.Delete(query).Error
+func Delete[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) error {
+	return conn.Scopes(scopes...).Delete(query).Error
 }
 
 // FindOne ...
