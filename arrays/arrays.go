@@ -45,9 +45,9 @@ func MapIndex[S, T any](items []S, fn func(S, int) T) []T {
 }
 
 // Reduce applies a function against an accumulator and each element in the array (from left to right) to reduce it to a single value.
-func Reduce[S, T any](items []S, fn func(T, S) T, acc T) T {
+func Reduce[S, T any](items []S, acc T, fn func(S, T) T) T {
 	for _, value := range items {
-		acc = fn(acc, value)
+		acc = fn(value, acc)
 	}
 	return acc
 }
