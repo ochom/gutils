@@ -12,7 +12,7 @@ type ExchangeType string
 var (
 	Direct  ExchangeType = "direct"
 	Topic   ExchangeType = "topic"
-	Fanout  ExchangeType = "fanout"
+	FanOut  ExchangeType = "fanout"
 	Headers ExchangeType = "headers"
 	Delayed ExchangeType = "x-delayed-message"
 )
