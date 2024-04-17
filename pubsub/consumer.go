@@ -8,11 +8,24 @@ type Consumer struct {
 	exchange     string
 	queue        string
 	exchangeType string
+	tag          string
+}
+
+type Config struct {
+	ExchangeType ExchangeType
+	ConsumerTag  string
 }
 
 // Create a new consumer instance
-func NewConsumer(rabbitURL, exchange, queue string, exchangeType ExchangeType) *Consumer {
-	return &Consumer{rabbitURL, exchange, queue, string(exchangeType)}
+func NewConsumer(rabbitURL, exchange, queue string, config ...Config) *Consumer {
+	c := Consumer{url: rabbitURL, exchange: exchange, queue: queue, exchangeType: string(Direct)}
+
+	if len(config) > 0 {
+		c.exchangeType = string(config[0].ExchangeType)
+		c.tag = config[0].ConsumerTag
+	}
+
+	return &c
 }
 
 // Consume consume messages from the channels
@@ -30,7 +43,7 @@ func (c *Consumer) Consume(workerFunc func([]byte)) error {
 
 	deliveries, err := ch.Consume(
 		c.queue, // queue
-		"",      // consumer
+		c.tag,   // consumerTag
 		true,    // auto-ack
 		false,   // exclusive
 		false,   // no-local
