@@ -3,46 +3,48 @@ package pubsub
 import (
 	"fmt"
 
-	"github.com/ochom/gutils/helpers"
 	"github.com/streadway/amqp"
 )
 
-var (
-	// rabbitURL is the URL of the RabbitMQ server
-	rabbitURL = helpers.GetEnv("RABBIT_URL", "amqp://guest:guest@localhost:5672/")
+// ExchangeType ...
+type ExchangeType string
 
-	// queuePrefix used to prefix the queue name to avoid conflict with other services
-	queuePrefix = helpers.GetEnv("QUEUE_PREFIX", "dev")
+var (
+	Direct  ExchangeType = "direct"
+	Topic   ExchangeType = "topic"
+	FanOut  ExchangeType = "fanout"
+	Headers ExchangeType = "headers"
+	Delayed ExchangeType = "x-delayed-message"
 )
 
 func initQ(url string) (*amqp.Connection, *amqp.Channel, error) {
 	conn, err := amqp.Dial(url)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("failed to connect to RabbitMQ: %s", err.Error())
 	}
 
 	ch, err := conn.Channel()
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("failed to open a channel: %s", err.Error())
 	}
 
-	err = ch.Qos(1, 0, false) // fair dispatch
+	err = ch.Qos(10, 0, false) // fair dispatch
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("failed to set QoS: %s", err.Error())
 	}
 
 	return conn, ch, nil
 }
 
 // initPubSub ...
-func initPubSub(ch *amqp.Channel, exchangeName, queueName string) error {
+func initPubSub(ch *amqp.Channel, exchangeName, queueName, exchangeType string) error {
 	err := ch.ExchangeDeclare(
-		exchangeName,        // name
-		"x-delayed-message", // type
-		true,                // durable
-		false,               // auto-deleted
-		false,               // internal
-		false,               // no-wait
+		exchangeName, // name
+		exchangeType, // type
+		true,         // durable
+		false,        // auto-deleted
+		false,        // internal
+		false,        // no-wait
 		amqp.Table{
 			"x-delayed-type": "direct",
 		}, // arguments
@@ -69,7 +71,7 @@ func initPubSub(ch *amqp.Channel, exchangeName, queueName string) error {
 		q.Name,       // queue name
 		q.Name,       // routing key
 		exchangeName, // exchange
-		false,
+		false,        // no-wait
 		nil,
 	)
 	if err != nil {

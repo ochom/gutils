@@ -9,29 +9,28 @@ import (
 
 // publisher ...
 type publisher struct {
-	url      string
-	exchange string
-	queue    string
+	url          string
+	exchange     string
+	queue        string
+	exchangeType string
 }
 
-// newPublisher ...
-func newPublisher(queueName string) *publisher {
-	exchange := fmt.Sprintf("%s-exchange", queueName)
-	return &publisher{rabbitURL, exchange, queueName}
+// NewPublisher  creates a new publisher to rabbit
+func NewPublisher(rabbitURL, exchange, queue string, exchangeType ExchangeType) *publisher {
+	return &publisher{rabbitURL, exchange, queue, string(exchangeType)}
 }
 
 // publish ...
 func (p *publisher) publish(body []byte, delay time.Duration) error {
 	conn, ch, err := initQ(p.url)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to initialize a connection: %s", err.Error())
 	}
-
 	defer ch.Close()
 	defer conn.Close()
 
-	if err := initPubSub(ch, p.exchange, p.queue); err != nil {
-		return err
+	if err := initPubSub(ch, p.exchange, p.queue, p.exchangeType); err != nil {
+		return fmt.Errorf("failed to initialize a pubsub: %s", err.Error())
 	}
 
 	// publish message to exchange
@@ -54,13 +53,11 @@ func (p *publisher) publish(body []byte, delay time.Duration) error {
 }
 
 // PublishWithDelay ...
-func PublishWithDelay(queueName string, body []byte, delay time.Duration) error {
-	p := newPublisher(fmt.Sprintf("%s-%s", queuePrefix, queueName))
+func (p *publisher) PublishWithDelay(body []byte, delay time.Duration) error {
 	return p.publish(body, delay)
 }
 
 // Publish ...
-func Publish(queueName string, body []byte) error {
-	p := newPublisher(fmt.Sprintf("%s-%s", queuePrefix, queueName))
+func (p *publisher) Publish(body []byte) error {
 	return p.publish(body, 0)
 }

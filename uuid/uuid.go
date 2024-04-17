@@ -15,7 +15,13 @@ var objectIDCounter = readRandomUint32()
 type ObjectID [12]byte
 
 // New ...
-func New() ObjectID {
+func New() string {
+	id := new()
+	return hex.EncodeToString(id[:])
+}
+
+// new ...
+func new() ObjectID {
 	var b [12]byte
 
 	// Convert the time to a byte array
@@ -32,12 +38,6 @@ func New() ObjectID {
 	putUint32(b[9:12], atomic.AddUint32(&objectIDCounter, 1))
 
 	return b
-}
-
-// NewString ...
-func NewString() string {
-	id := New()
-	return hex.EncodeToString(id[:])
 }
 
 func generateRandomByte() [5]byte {
