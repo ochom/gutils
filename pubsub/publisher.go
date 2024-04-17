@@ -1,6 +1,7 @@
 package pubsub
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/streadway/amqp"
@@ -22,14 +23,13 @@ func NewPublisher(rabbitURL, exchange, queue string) *publisher {
 func (p *publisher) publish(body []byte, delay time.Duration) error {
 	conn, ch, err := initQ(p.url)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to initialize a connection: %s", err.Error())
 	}
-
 	defer ch.Close()
 	defer conn.Close()
 
 	if err := initPubSub(ch, p.exchange, p.queue); err != nil {
-		return err
+		return fmt.Errorf("failed to initialize a pubsub: %s", err.Error())
 	}
 
 	// publish message to exchange

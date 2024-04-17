@@ -9,17 +9,17 @@ import (
 func initQ(url string) (*amqp.Connection, *amqp.Channel, error) {
 	conn, err := amqp.Dial(url)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("failed to connect to RabbitMQ: %s", err.Error())
 	}
 
 	ch, err := conn.Channel()
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("failed to open a channel: %s", err.Error())
 	}
 
 	err = ch.Qos(1, 0, false) // fair dispatch
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("failed to set QoS: %s", err.Error())
 	}
 
 	return conn, ch, nil
