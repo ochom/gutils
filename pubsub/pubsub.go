@@ -3,16 +3,7 @@ package pubsub
 import (
 	"fmt"
 
-	"github.com/ochom/gutils/helpers"
 	"github.com/streadway/amqp"
-)
-
-var (
-	// rabbitURL is the URL of the RabbitMQ server
-	rabbitURL = helpers.GetEnv("RABBIT_URL", "amqp://guest:guest@localhost:5672/")
-
-	// queuePrefix used to prefix the queue name to avoid conflict with other services
-	queuePrefix = helpers.GetEnv("QUEUE_PREFIX", "dev")
 )
 
 func initQ(url string) (*amqp.Connection, *amqp.Channel, error) {

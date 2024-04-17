@@ -9,16 +9,13 @@ type Consumer struct {
 	queue    string
 }
 
-// newConsumer ...
-func newConsumer(rabbitURL, queueName string) *Consumer {
-	exchange := fmt.Sprintf("%s-%s-exchange", queuePrefix, queueName)
-	queueName = fmt.Sprintf("%s-%s", queuePrefix, queueName)
-	return &Consumer{rabbitURL, exchange, queueName}
+// Create a new consumer instance
+func NewConsumer(rabbitURL, exchange, queue string) *Consumer {
+	return &Consumer{rabbitURL, exchange, queue}
 }
 
 // Consume consume messages from the channels
-func Consume(queueName string, workerFunc func([]byte)) error {
-	c := newConsumer(rabbitURL, queueName)
+func (c *Consumer) Consume(workerFunc func([]byte)) error {
 	conn, ch, err := initQ(c.url)
 	if err != nil {
 		return fmt.Errorf("failed to initialize a connection: %s", err.Error())

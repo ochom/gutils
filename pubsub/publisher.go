@@ -1,7 +1,6 @@
 package pubsub
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/streadway/amqp"
@@ -14,10 +13,9 @@ type publisher struct {
 	queue    string
 }
 
-// newPublisher ...
-func newPublisher(queueName string) *publisher {
-	exchange := fmt.Sprintf("%s-exchange", queueName)
-	return &publisher{rabbitURL, exchange, queueName}
+// NewPublisher  creates a new publisher to rabbit
+func NewPublisher(rabbitURL, exchange, queue string) *publisher {
+	return &publisher{rabbitURL, exchange, queue}
 }
 
 // publish ...
@@ -54,13 +52,11 @@ func (p *publisher) publish(body []byte, delay time.Duration) error {
 }
 
 // PublishWithDelay ...
-func PublishWithDelay(queueName string, body []byte, delay time.Duration) error {
-	p := newPublisher(fmt.Sprintf("%s-%s", queuePrefix, queueName))
+func (p *publisher) PublishWithDelay(queueName string, body []byte, delay time.Duration) error {
 	return p.publish(body, delay)
 }
 
 // Publish ...
-func Publish(queueName string, body []byte) error {
-	p := newPublisher(fmt.Sprintf("%s-%s", queuePrefix, queueName))
+func (p *publisher) Publish(queueName string, body []byte) error {
 	return p.publish(body, 0)
 }
