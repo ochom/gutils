@@ -9,19 +9,15 @@ import (
 
 // publisher ...
 type publisher struct {
-	url         string
-	exchange    string
-	queue       string
-	enableDelay bool
+	url          string
+	exchange     string
+	queue        string
+	exchangeType string
 }
 
 // NewPublisher  creates a new publisher to rabbit
-func NewPublisher(rabbitURL, exchange, queue string, config ...Config) *publisher {
-	if len(config) > 0 {
-		return &publisher{rabbitURL, exchange, queue, config[0].EnableDelay}
-	}
-
-	return &publisher{rabbitURL, exchange, queue, false}
+func NewPublisher(rabbitURL, exchange, queue string, exchangeType ExchangeType) *publisher {
+	return &publisher{rabbitURL, exchange, queue, string(exchangeType)}
 }
 
 // publish ...
@@ -33,7 +29,7 @@ func (p *publisher) publish(body []byte, delay time.Duration) error {
 	defer ch.Close()
 	defer conn.Close()
 
-	if err := initPubSub(ch, p.exchange, p.queue, p.enableDelay); err != nil {
+	if err := initPubSub(ch, p.exchange, p.queue, p.exchangeType); err != nil {
 		return fmt.Errorf("failed to initialize a pubsub: %s", err.Error())
 	}
 

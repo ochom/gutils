@@ -4,19 +4,15 @@ import "fmt"
 
 // Consumer ...
 type Consumer struct {
-	url         string
-	exchange    string
-	queue       string
-	enableDelay bool
+	url          string
+	exchange     string
+	queue        string
+	exchangeType string
 }
 
 // Create a new consumer instance
-func NewConsumer(rabbitURL, exchange, queue string, config ...Config) *Consumer {
-	if len(config) > 0 {
-		return &Consumer{rabbitURL, exchange, queue, config[0].EnableDelay}
-	}
-
-	return &Consumer{rabbitURL, exchange, queue, false}
+func NewConsumer(rabbitURL, exchange, queue string, exchangeType ExchangeType) *Consumer {
+	return &Consumer{rabbitURL, exchange, queue, string(exchangeType)}
 }
 
 // Consume consume messages from the channels
@@ -28,7 +24,7 @@ func (c *Consumer) Consume(workerFunc func([]byte)) error {
 	defer ch.Close()
 	defer conn.Close()
 
-	if err := initPubSub(ch, c.exchange, c.queue, c.enableDelay); err != nil {
+	if err := initPubSub(ch, c.exchange, c.queue, c.exchangeType); err != nil {
 		return fmt.Errorf("failed to initialize a pubsub: %s", err.Error())
 	}
 
