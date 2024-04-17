@@ -6,6 +6,11 @@ import (
 	"github.com/streadway/amqp"
 )
 
+// Config  for publisher and consumer
+type Config struct {
+	EnableDelay bool
+}
+
 func initQ(url string) (*amqp.Connection, *amqp.Channel, error) {
 	conn, err := amqp.Dial(url)
 	if err != nil {
@@ -26,14 +31,19 @@ func initQ(url string) (*amqp.Connection, *amqp.Channel, error) {
 }
 
 // initPubSub ...
-func initPubSub(ch *amqp.Channel, exchangeName, queueName string) error {
+func initPubSub(ch *amqp.Channel, exchangeName, queueName string, enableDelay bool) error {
+	exchangeType := "direct"
+	if enableDelay {
+		exchangeType = "x-delayed-message"
+	}
+
 	err := ch.ExchangeDeclare(
-		exchangeName,        // name
-		"x-delayed-message", // type
-		true,                // durable
-		false,               // auto-deleted
-		false,               // internal
-		false,               // no-wait
+		exchangeName, // name
+		exchangeType, // type
+		true,         // durable
+		false,        // auto-deleted
+		false,        // internal
+		false,        // no-wait
 		amqp.Table{
 			"x-delayed-type": "direct",
 		}, // arguments
