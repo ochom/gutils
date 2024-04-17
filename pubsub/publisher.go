@@ -52,11 +52,11 @@ func (p *publisher) publish(body []byte, delay time.Duration) error {
 }
 
 // PublishWithDelay ...
-func (p *publisher) PublishWithDelay(queueName string, body []byte, delay time.Duration) error {
+func (p *publisher) PublishWithDelay(body []byte, delay time.Duration) error {
 	return p.publish(body, delay)
 }
 
 // Publish ...
-func (p *publisher) Publish(queueName string, body []byte) error {
+func (p *publisher) Publish(body []byte) error {
 	return p.publish(body, 0)
 }
