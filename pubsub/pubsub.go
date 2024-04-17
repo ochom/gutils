@@ -28,7 +28,7 @@ func initQ(url string) (*amqp.Connection, *amqp.Channel, error) {
 		return nil, nil, fmt.Errorf("failed to open a channel: %s", err.Error())
 	}
 
-	err = ch.Qos(1, 0, false) // fair dispatch
+	err = ch.Qos(10, 0, false) // fair dispatch
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to set QoS: %s", err.Error())
 	}
