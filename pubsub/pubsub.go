@@ -42,7 +42,7 @@ func initPubSub(ch *amqp.Channel, exchangeName, queueName, exchangeType string) 
 		exchangeName, // name
 		exchangeType, // type
 		true,         // durable
-		false,        // auto-deleted
+		true,         // auto-deleted
 		false,        // internal
 		false,        // no-wait
 		amqp.Table{
@@ -57,7 +57,7 @@ func initPubSub(ch *amqp.Channel, exchangeName, queueName, exchangeType string) 
 	q, err := ch.QueueDeclare(
 		queueName, // name
 		true,      // durable
-		false,     // delete when unused
+		true,      // delete when unused
 		false,     // exclusive
 		false,     // no-wait
 		nil,       // arguments
@@ -71,7 +71,7 @@ func initPubSub(ch *amqp.Channel, exchangeName, queueName, exchangeType string) 
 		q.Name,       // queue name
 		q.Name,       // routing key
 		exchangeName, // exchange
-		false,
+		false,        // no-wait
 		nil,
 	)
 	if err != nil {
