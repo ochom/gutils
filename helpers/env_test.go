@@ -37,7 +37,7 @@ func TestGetEnv(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := helpers.GetEnv(tt.args.key, tt.args.defaultValue); got != tt.want {
+			if got := helpers.GetEnvDefault(tt.args.key, tt.args.defaultValue); got != tt.want {
 				t.Errorf("GetEnv() = %v, want %v", got, tt.want)
 			}
 		})
