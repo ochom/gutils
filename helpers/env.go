@@ -3,10 +3,22 @@ package helpers
 import (
 	"os"
 	"strconv"
+
+	"github.com/ochom/gutils/logs"
 )
 
-// GetEnv ...
-func GetEnv(key string, defaultValue string) string {
+// GetEnv returns env variable or the provided default value when variable not found
+func GetEnv(key string) string {
+	value, ok := os.LookupEnv(key)
+	if !ok {
+		logs.Error("Environment variable %s not found", key)
+	}
+
+	return value
+}
+
+// GetEnv returns env variable or the provided default value when variable not found
+func GetEnvDefault(key string, defaultValue string) string {
 	value, ok := os.LookupEnv(key)
 	if !ok {
 		return defaultValue
@@ -15,7 +27,7 @@ func GetEnv(key string, defaultValue string) string {
 	return value
 }
 
-// GetEnvInt ...
+// GetEnvInt returns an integer from env variable or the provided default value when variable not found
 func GetEnvInt(key string, defaultValue int) int {
 	value, ok := os.LookupEnv(key)
 	if !ok {
@@ -30,7 +42,7 @@ func GetEnvInt(key string, defaultValue int) int {
 	return val
 }
 
-// GetEnvBool ...
+// GetEnvBool returns a boolean from env variable or the provided default value when variable not found
 func GetEnvBool(key string, defaultValue bool) bool {
 	value, ok := os.LookupEnv(key)
 	if !ok {
@@ -45,7 +57,7 @@ func GetEnvBool(key string, defaultValue bool) bool {
 	return val
 }
 
-// GetEnvFloat ...
+// GetEnvFloat returns a float from env variable or the provided default value when variable not found
 func GetEnvFloat(key string, defaultValue float64) float64 {
 	value, ok := os.LookupEnv(key)
 	if !ok {

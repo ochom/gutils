@@ -1,9 +1,13 @@
-package gttp
+package helpers
 
-import "encoding/json"
+import (
+	"encoding/json"
 
-// toBytes ...
-func ToBytes(payload any) []byte {
+	"github.com/ochom/gutils/logs"
+)
+
+// ToJSON converts a struct to JSON
+func ToJSON(payload any) []byte {
 	if payload == nil {
 		return nil
 	}
@@ -27,17 +31,18 @@ func ToBytes(payload any) []byte {
 	return bytesPayload
 }
 
-// FromBytes ...
-func FromBytes[T any](payload []byte) (T, error) {
+// FromJSON converts json byte  to struct
+func FromJSON[T any](payload []byte) T {
 	var data T
 	if payload == nil {
-		return data, nil
+		return data
 	}
 
 	err := json.Unmarshal(payload, &data)
 	if err != nil {
-		return data, err
+		logs.Error("Failed to unmarshal JSON: %s", err.Error())
+		return data
 	}
 
-	return data, nil
+	return data
 }

@@ -4,9 +4,6 @@ import (
 	"encoding/csv"
 	"io"
 	"os"
-	"time"
-
-	"github.com/ochom/gutils/gttp"
 )
 
 // ParseCSV reads csv from io.Reader and returns a chan of slice of strings
@@ -43,13 +40,4 @@ func ReadFile(path string) ([]byte, error) {
 	}
 
 	return b, nil
-}
-
-func DownloadFile(url string) ([]byte, error) {
-	resp, err := gttp.Get(url, nil, 5*time.Minute)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp.Body, nil
 }
