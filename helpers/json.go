@@ -7,14 +7,28 @@ import (
 )
 
 // ToJSON converts a struct to JSON
-func ToJSON(v any) []byte {
-	b, err := json.Marshal(v)
-	if err != nil {
-		logs.Error("Failed to marshal JSON: %s", err.Error())
+func ToJSON(payload any) []byte {
+	if payload == nil {
 		return nil
 	}
 
-	return b
+	// Check if the payload is already of type []byte.
+	if bytesPayload, ok := payload.([]byte); ok {
+		return bytesPayload
+	}
+
+	// Check if the payload is already of type string.
+	if stringPayload, ok := payload.(string); ok {
+		return []byte(stringPayload)
+	}
+
+	// Marshal the payload to JSON.
+	bytesPayload, err := json.Marshal(&payload)
+	if err != nil {
+		return nil
+	}
+
+	return bytesPayload
 }
 
 // FromJSON converts json byte  to struct
