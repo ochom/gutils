@@ -6,21 +6,14 @@ import (
 	"os"
 )
 
-// Logger ...
-type logger struct {
-	k *log.Logger
-}
-
-var c *logger
+var c *log.Logger
 
 func init() {
-	c = &logger{
-		k: log.New(os.Stdout, "", log.LstdFlags),
-	}
+	c = log.New(os.Stdout, "", log.LstdFlags)
 }
 
 func print(s string) {
-	_ = c.k.Output(3, s)
+	_ = c.Output(3, s)
 }
 
 // Info ...
