@@ -1,6 +1,9 @@
 package sql
 
-import "gorm.io/gorm"
+import (
+	"github.com/ochom/gutils/logs"
+	"gorm.io/gorm"
+)
 
 // Create ...
 func Create[T any](data *T) error {
@@ -43,9 +46,14 @@ func FindWithLimit[T any](query *T, page, limit int, scopes ...func(*gorm.DB) *g
 }
 
 // Count ...
-func Count[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) (int64, error) {
+func Count[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) int {
 	var count int64
 	var model T
 	err := conn.Model(&model).Scopes(scopes...).Where(query).Count(&count).Error
-	return count, err
+	if err != nil {
+		logs.Error("Failed to count: %s", err.Error())
+		return 0
+	}
+
+	return int(count)
 }
