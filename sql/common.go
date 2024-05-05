@@ -21,37 +21,43 @@ func Delete[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) error {
 }
 
 // FindOne ...
-func FindOne[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) (*T, error) {
+func FindOne[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) *T {
 	var data T
-	err := conn.Scopes(scopes...).First(&data, query).Error
-	if err != nil {
-		return nil, err
+	if err := conn.Scopes(scopes...).First(&data, query).Error; err != nil {
+		logs.Info("FindOne: %s", err.Error())
+		return nil
 	}
 
-	return &data, nil
+	return &data
 }
 
 // FindAll ...
-func FindAll[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) ([]*T, error) {
+func FindAll[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) []*T {
 	data := []*T{}
-	err := conn.Scopes(scopes...).Find(&data, query).Error
-	return data, err
+	if err := conn.Scopes(scopes...).Find(&data, query).Error; err != nil {
+		logs.Info("FindAll: %s", err.Error())
+		return []*T{}
+	}
+
+	return data
 }
 
 // FindWithLimit ...
-func FindWithLimit[T any](query *T, page, limit int, scopes ...func(*gorm.DB) *gorm.DB) ([]*T, error) {
+func FindWithLimit[T any](query *T, page, limit int, scopes ...func(*gorm.DB) *gorm.DB) []*T {
 	data := []*T{}
-	err := conn.Scopes(scopes...).Offset((page-1)*limit).Limit(limit).Find(&data, query).Error
-	return data, err
+	if err := conn.Scopes(scopes...).Offset((page-1)*limit).Limit(limit).Find(&data, query).Error; err != nil {
+		logs.Info("FindWithLimit: %s", err.Error())
+		return []*T{}
+	}
+	return data
 }
 
 // Count ...
 func Count[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) int {
 	var count int64
 	var model T
-	err := conn.Model(&model).Scopes(scopes...).Where(query).Count(&count).Error
-	if err != nil {
-		logs.Error("Failed to count: %s", err.Error())
+	if err := conn.Model(&model).Scopes(scopes...).Where(query).Count(&count).Error; err != nil {
+		logs.Info("Count: %s", err.Error())
 		return 0
 	}
 
