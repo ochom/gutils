@@ -1,6 +1,7 @@
 package ussd
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/ochom/gutils/arrays"
@@ -84,6 +85,13 @@ func (s *Step) walk(ussdParts []string) *Step {
 	// first check kids that exactly match the first piece
 	for _, child := range s.Children {
 		if strings.EqualFold(ussdParts[0], child.Key) {
+			return child.walk(ussdParts[1:])
+		}
+	}
+
+	// check any item that matches the input as a regex
+	for _, child := range s.Children {
+		if match, _ := regexp.MatchString(ussdParts[0], child.Key); match {
 			return child.walk(ussdParts[1:])
 		}
 	}
