@@ -1,6 +1,9 @@
 package sql
 
-import "gorm.io/gorm"
+import (
+	"github.com/ochom/gutils/logs"
+	"gorm.io/gorm"
+)
 
 // Create ...
 func Create[T any](data *T) error {
@@ -20,8 +23,8 @@ func Delete[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) error {
 // FindOne ...
 func FindOne[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) (*T, error) {
 	var data T
-	err := conn.Scopes(scopes...).First(&data, query).Error
-	if err != nil {
+	if err := conn.Scopes(scopes...).First(&data, query).Error; err != nil {
+		logs.Info("FindOne: %s", err.Error())
 		return nil, err
 	}
 
@@ -29,23 +32,34 @@ func FindOne[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) (*T, error) {
 }
 
 // FindAll ...
-func FindAll[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) ([]*T, error) {
+func FindAll[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) []*T {
 	data := []*T{}
-	err := conn.Scopes(scopes...).Find(&data, query).Error
-	return data, err
+	if err := conn.Scopes(scopes...).Find(&data, query).Error; err != nil {
+		logs.Info("FindAll: %s", err.Error())
+		return []*T{}
+	}
+
+	return data
 }
 
 // FindWithLimit ...
-func FindWithLimit[T any](query *T, page, limit int, scopes ...func(*gorm.DB) *gorm.DB) ([]*T, error) {
+func FindWithLimit[T any](query *T, page, limit int, scopes ...func(*gorm.DB) *gorm.DB) []*T {
 	data := []*T{}
-	err := conn.Scopes(scopes...).Offset((page-1)*limit).Limit(limit).Find(&data, query).Error
-	return data, err
+	if err := conn.Scopes(scopes...).Offset((page-1)*limit).Limit(limit).Find(&data, query).Error; err != nil {
+		logs.Info("FindWithLimit: %s", err.Error())
+		return []*T{}
+	}
+	return data
 }
 
 // Count ...
-func Count[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) (int64, error) {
+func Count[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) int {
 	var count int64
 	var model T
-	err := conn.Model(&model).Scopes(scopes...).Where(query).Count(&count).Error
-	return count, err
+	if err := conn.Model(&model).Scopes(scopes...).Where(query).Count(&count).Error; err != nil {
+		logs.Info("Count: %s", err.Error())
+		return 0
+	}
+
+	return int(count)
 }
