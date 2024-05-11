@@ -91,19 +91,15 @@ func (s *Step) walk(ussdParts []string) *Step {
 
 	// check any item that matches the input as a regex
 	for _, child := range s.Children {
+		if child.Key == "" {
+			child.Key = "*"
+		}
 		matcher, err := regexp.Compile(child.Key)
 		if err != nil {
 			continue
 		}
 
 		if matcher.MatchString(ussdParts[0]) {
-			return child.walk(ussdParts[1:])
-		}
-	}
-
-	// then check if the first piece is a wildcard
-	for _, child := range s.Children {
-		if child.Key == "" {
 			return child.walk(ussdParts[1:])
 		}
 	}
