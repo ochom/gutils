@@ -91,7 +91,12 @@ func (s *Step) walk(ussdParts []string) *Step {
 
 	// check any item that matches the input as a regex
 	for _, child := range s.Children {
-		if match, _ := regexp.MatchString(child.Key, ussdParts[0]); match {
+		match, err := regexp.MatchString(child.Key, ussdParts[0])
+		if err != nil {
+			continue
+		}
+
+		if match {
 			return child.walk(ussdParts[1:])
 		}
 	}
