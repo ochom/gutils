@@ -12,15 +12,22 @@ func HasSession(sessionId string) bool {
 }
 
 func GetSession(sessionId string) map[string]string {
-	if !HasSession(sessionId) {
-		SetSession(sessionId, make(map[string]string))
+	val, ok := session[sessionId]
+	if !ok {
+		return make(map[string]string)
 	}
 
-	return session[sessionId]
+	return val
 }
 
-func SetSession(sessionId string, params map[string]string) {
-	session[sessionId] = params
+func SetSession(sessionId, key, value string) {
+	val, ok := session[sessionId]
+	if !ok {
+		val = make(map[string]string)
+	}
+
+	val[key] = value
+	session[sessionId] = val
 }
 
 func RemoveSession(sessionId string) {

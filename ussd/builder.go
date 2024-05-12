@@ -18,15 +18,15 @@ type Step struct {
 	Key      string
 	Menu     GetMenuFunc
 	End      bool
-	Params   map[string]string
 	Children Children
+	params   map[string]string
 }
 
-// NewStep creates a new step
-func NewStep(menuFunc GetMenuFunc) Step {
+// NewMenu creates a new step
+func NewMenu(menuFunc GetMenuFunc) Step {
 	return Step{
 		Menu:   menuFunc,
-		Params: make(map[string]string),
+		params: make(map[string]string),
 	}
 }
 
@@ -37,12 +37,18 @@ func (s *Step) AddStep(step Step) {
 
 // GetResponse returns the response
 func (s *Step) GetResponse() string {
-	response := s.Menu(s.Params)
-	if strings.HasPrefix(response, "CON ") || strings.HasPrefix(response, "END ") {
+	response := s.Menu(s.params)
+	if strings.HasPrefix(response, "END ") {
+		RemoveSession(s.params["session_id"])
+		return response
+	}
+
+	if strings.HasPrefix(response, "CON ") {
 		return response
 	}
 
 	if s.End {
+		RemoveSession(s.params["session_id"])
 		return "END " + response
 	}
 
@@ -107,8 +113,8 @@ func (s *Step) walk(ussdParts []string) *Step {
 	return nil
 }
 
-// Parse takes a ussd string and returns the right child
-func (s *Step) Parse(sessionData map[string]string, ussdParts []string) *Step {
+// parse takes a ussd string and returns the right child
+func (s *Step) parse(sessionData map[string]string, ussdParts []string) *Step {
 	child := s.walk(ussdParts)
 	if child == nil {
 		logs.Error("Could not get the correct child for the ussd string")
@@ -120,6 +126,6 @@ func (s *Step) Parse(sessionData map[string]string, ussdParts []string) *Step {
 		sessionData["input"] = ussdParts[remainingPieces-1]
 	}
 
-	child.Params = sessionData
+	child.params = sessionData
 	return child
 }
