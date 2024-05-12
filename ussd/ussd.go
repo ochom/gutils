@@ -40,6 +40,10 @@ func Parse(data Params) (*Step, error) {
 		"text":         data.Text,
 	}
 
+	if len(parts) > 0 {
+		params["input"] = parts[len(parts)-1]
+	}
+
 	for k, v := range params {
 		SetSession(data.SessionId, k, v)
 	}
