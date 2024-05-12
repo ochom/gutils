@@ -96,12 +96,12 @@ A `Step` should have the following properties
 
 ## What to expect in the params argues of a Menu func
 
-| Item         | Type   | Description                                                             |
-| ------------ | ------ | ----------------------------------------------------------------------- |
-| session_id   | string | The session id                                                          |
-| phone_number | string | session user phone number                                               |
-| text         | string | The full ussd string i.e `*401*2\*3#`                                   |
-| input        | string | the last value the user input i.e in `*401*2\*3#` the input will be `3` |
+| Item         | Type   | Description                                                            |
+| ------------ | ------ | ---------------------------------------------------------------------- |
+| session_id   | string | The session id                                                         |
+| phone_number | string | session user phone number                                              |
+| text         | string | The full ussd string i.e `*401*2*3#`                                   |
+| input        | string | the last value the user input i.e in `*401*2*3#` the input will be `3` |
 
 ## Word
 
