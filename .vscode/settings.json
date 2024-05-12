@@ -4,6 +4,7 @@
         "fanout",
         "GORM",
         "gttp",
-        "nosql"
+        "nosql",
+        "ussd"
     ],
 }
