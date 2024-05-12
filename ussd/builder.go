@@ -18,15 +18,15 @@ type Step struct {
 	Key      string
 	Menu     GetMenuFunc
 	End      bool
-	Params   map[string]string
 	Children Children
+	params   map[string]string
 }
 
 // NewMenu creates a new step
 func NewMenu(menuFunc GetMenuFunc) Step {
 	return Step{
 		Menu:   menuFunc,
-		Params: make(map[string]string),
+		params: make(map[string]string),
 	}
 }
 
@@ -37,9 +37,9 @@ func (s *Step) AddStep(step Step) {
 
 // GetResponse returns the response
 func (s *Step) GetResponse() string {
-	response := s.Menu(s.Params)
+	response := s.Menu(s.params)
 	if strings.HasPrefix(response, "END ") {
-		RemoveSession(s.Params["session_id"])
+		RemoveSession(s.params["session_id"])
 		return response
 	}
 
@@ -48,7 +48,7 @@ func (s *Step) GetResponse() string {
 	}
 
 	if s.End {
-		RemoveSession(s.Params["session_id"])
+		RemoveSession(s.params["session_id"])
 		return "END " + response
 	}
 
@@ -126,6 +126,6 @@ func (s *Step) parse(sessionData map[string]string, ussdParts []string) *Step {
 		sessionData["input"] = ussdParts[remainingPieces-1]
 	}
 
-	child.Params = sessionData
+	child.params = sessionData
 	return child
 }

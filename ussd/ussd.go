@@ -44,8 +44,8 @@ func Parse(data Params) (*Step, error) {
 		SetSession(data.SessionId, k, v)
 	}
 
-	mainMenu.Params = params
-	step := mainMenu.parse(mainMenu.Params, parts)
+	mainMenu.params = params
+	step := mainMenu.parse(mainMenu.params, parts)
 	if step == nil {
 		logs.Error("Could not get the correct child for the ussd string")
 		return nil, fmt.Errorf("could not get the correct child for the ussd string")
