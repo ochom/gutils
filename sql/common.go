@@ -24,7 +24,6 @@ func Delete[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) error {
 func FindOne[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) (*T, error) {
 	var data T
 	if err := conn.Scopes(scopes...).First(&data, query).Error; err != nil {
-		logs.Info("FindOne: %s", err.Error())
 		return nil, err
 	}
 
