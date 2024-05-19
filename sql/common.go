@@ -20,6 +20,13 @@ func Delete[T any](scopes ...func(*gorm.DB) *gorm.DB) error {
 	return conn.Scopes(scopes...).Delete(new(T)).Error
 }
 
+// DeleteById ...
+func DeleteById[T any](id any, scopes ...func(*gorm.DB) *gorm.DB) error {
+	return Delete[T](append(scopes, func(db *gorm.DB) *gorm.DB {
+		return db.Where("id = ?", id)
+	})...)
+}
+
 // FindOne ...
 func FindOne[T any](scopes ...func(*gorm.DB) *gorm.DB) (*T, error) {
 	var data T
