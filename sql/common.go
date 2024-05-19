@@ -16,14 +16,14 @@ func Update[T any](data *T) error {
 }
 
 // Delete ...
-func Delete[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) error {
-	return conn.Scopes(scopes...).Delete(query).Error
+func Delete[T any](scopes ...func(*gorm.DB) *gorm.DB) error {
+	return conn.Scopes(scopes...).Delete(new(T)).Error
 }
 
 // FindOne ...
-func FindOne[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) (*T, error) {
+func FindOne[T any](scopes ...func(*gorm.DB) *gorm.DB) (*T, error) {
 	var data T
-	if err := conn.Scopes(scopes...).First(&data, query).Error; err != nil {
+	if err := conn.Scopes(scopes...).First(&data).Error; err != nil {
 		return nil, err
 	}
 
@@ -31,9 +31,9 @@ func FindOne[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) (*T, error) {
 }
 
 // FindAll ...
-func FindAll[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) []*T {
+func FindAll[T any](scopes ...func(*gorm.DB) *gorm.DB) []*T {
 	data := []*T{}
-	if err := conn.Scopes(scopes...).Find(&data, query).Error; err != nil {
+	if err := conn.Scopes(scopes...).Find(&data).Error; err != nil {
 		logs.Info("FindAll: %s", err.Error())
 		return []*T{}
 	}
@@ -42,9 +42,9 @@ func FindAll[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) []*T {
 }
 
 // FindWithLimit ...
-func FindWithLimit[T any](query *T, page, limit int, scopes ...func(*gorm.DB) *gorm.DB) []*T {
+func FindWithLimit[T any](page, limit int, scopes ...func(*gorm.DB) *gorm.DB) []*T {
 	data := []*T{}
-	if err := conn.Scopes(scopes...).Offset((page-1)*limit).Limit(limit).Find(&data, query).Error; err != nil {
+	if err := conn.Scopes(scopes...).Offset((page - 1) * limit).Limit(limit).Find(&data).Error; err != nil {
 		logs.Info("FindWithLimit: %s", err.Error())
 		return []*T{}
 	}
@@ -52,10 +52,10 @@ func FindWithLimit[T any](query *T, page, limit int, scopes ...func(*gorm.DB) *g
 }
 
 // Count ...
-func Count[T any](query *T, scopes ...func(*gorm.DB) *gorm.DB) int {
+func Count[T any](scopes ...func(*gorm.DB) *gorm.DB) int {
 	var count int64
 	var model T
-	if err := conn.Model(&model).Scopes(scopes...).Where(query).Count(&count).Error; err != nil {
+	if err := conn.Model(&model).Scopes(scopes...).Count(&count).Error; err != nil {
 		logs.Info("Count: %s", err.Error())
 		return 0
 	}
