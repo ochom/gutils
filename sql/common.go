@@ -31,7 +31,7 @@ func FindOne[T any](scopes ...func(*gorm.DB) *gorm.DB) (*T, error) {
 }
 
 // FindOneById ...
-func FindOneById[T any](id string, scopes ...func(*gorm.DB) *gorm.DB) (*T, error) {
+func FindOneById[T any](id any, scopes ...func(*gorm.DB) *gorm.DB) (*T, error) {
 	return FindOne[T](append(scopes, func(db *gorm.DB) *gorm.DB {
 		return db.Where("id = ?", id)
 	})...)
