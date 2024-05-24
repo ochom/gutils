@@ -17,22 +17,20 @@ var conn *gorm.DB
 func Conn() *gorm.DB { return conn }
 
 // defaultConfig ...
-func defaultConfig() *Config {
-	return &Config{
-		DatabaseType: Sqlite,
-		Url:          "gorm.db",
-		LogLevel:     logger.Silent,
-		MaxIdleConns: 10,
-		MaxOpenConns: 100,
-		ConnLifeTime: time.Hour,
-	}
+var defaultConfig Config = Config{
+	DatabaseType: Sqlite,
+	Url:          "gorm.db",
+	LogLevel:     logger.Silent,
+	MaxIdleConns: 10,
+	MaxOpenConns: 100,
+	ConnLifeTime: time.Hour,
 }
 
 // Init initializes the database connection with GORM
-func Init(configs ...Config) error {
+func Init(configs ...*Config) error {
 	var err error
 
-	config := defaultConfig()
+	config := defaultConfig
 	for _, cfg := range configs {
 		if cfg.DatabaseType != "" {
 			config.Url = cfg.Url
