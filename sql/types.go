@@ -27,54 +27,9 @@ const (
 // Database configuration
 type Config struct {
 	DatabaseType Platform
-	DSN          string
+	Url          string
 	LogLevel     logger.LogLevel
 	MaxIdleConns int
 	MaxOpenConns int
 	ConnLifeTime time.Duration
-}
-
-// ConfigFunc ...
-type ConfigFunc func(*Config)
-
-// WithDatabaseType ...
-func WithDatabaseType(dbType Platform) ConfigFunc {
-	return func(c *Config) {
-		c.DatabaseType = dbType
-	}
-}
-
-// WithDSN ...
-func WithDSN(dsn string) ConfigFunc {
-	return func(c *Config) {
-		c.DSN = dsn
-	}
-}
-
-// WithLogLevel ...
-func WithLogLevel(logLevel logger.LogLevel) ConfigFunc {
-	return func(c *Config) {
-		c.LogLevel = logLevel
-	}
-}
-
-// WithMaxIdleConns ...
-func WithMaxIdleConns(maxIdleConns int) ConfigFunc {
-	return func(c *Config) {
-		c.MaxIdleConns = maxIdleConns
-	}
-}
-
-// WithMaxOpenConns ...
-func WithMaxOpenConns(maxOpenConns int) ConfigFunc {
-	return func(c *Config) {
-		c.MaxOpenConns = maxOpenConns
-	}
-}
-
-// WithConnLifeTime ...
-func WithConnLifeTime(connLifeTime time.Duration) ConfigFunc {
-	return func(c *Config) {
-		c.ConnLifeTime = connLifeTime
-	}
 }
