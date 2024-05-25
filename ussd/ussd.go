@@ -9,7 +9,7 @@ import (
 
 var mainMenu *Step
 
-func InitMenu(step *Step) {
+func New(step *Step) {
 	if mainMenu == nil {
 		mainMenu = step
 	}
@@ -21,7 +21,8 @@ type Params struct {
 	PhoneNumber string
 }
 
-func Parse(data Params) (*Step, error) {
+// Process processes the ussd string and returns the next step
+func Process(data Params) (*Step, error) {
 	if mainMenu == nil {
 		return nil, fmt.Errorf("mainMenu has not been created")
 	}

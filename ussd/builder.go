@@ -8,22 +8,22 @@ import (
 	"github.com/ochom/gutils/logs"
 )
 
-// GetMenuFunc returns the menu function
-type GetMenuFunc func(params map[string]string) string
+// MenuFunc returns the menu function
+type MenuFunc func(params map[string]string) string
 
 type Children []*Step
 
 // Step a ussd step
 type Step struct {
 	Key      string
-	Menu     GetMenuFunc
+	Menu     MenuFunc
 	End      bool
 	Children Children
 	params   map[string]string
 }
 
 // NewMenu creates a new step
-func NewMenu(menuFunc GetMenuFunc) Step {
+func NewMenu(menuFunc MenuFunc) Step {
 	return Step{
 		Menu:   menuFunc,
 		params: make(map[string]string),

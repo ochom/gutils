@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// n initialized in Init() and used in all other functions
+// internal connection initialized by the New function
 var connection *gorm.DB
 
 // Conn returns the database connection
@@ -26,8 +26,8 @@ var config = &Config{
 	ConnLifeTime: time.Hour,
 }
 
-// Init initializes the database connection with GORM
-func Init(configs ...*Config) (err error) {
+// New initializes the database connection with GORM
+func New(configs ...*Config) (err error) {
 	for _, cfg := range configs {
 		if cfg.DatabaseType != "" {
 			config.DatabaseType = cfg.DatabaseType

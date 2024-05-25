@@ -76,14 +76,3 @@ func Count[T any](scopes ...func(*gorm.DB) *gorm.DB) int {
 
 	return int(count)
 }
-
-// CountByTableName ...
-func CountByTableName(tableName string, query string, args ...any) int {
-	var count int64
-	if err := connection.Table(tableName).Where(query, args...).Count(&count).Error; err != nil {
-		logs.Info("Count: %s", err.Error())
-		return 0
-	}
-
-	return int(count)
-}
