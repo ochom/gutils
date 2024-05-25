@@ -22,8 +22,8 @@ type Step struct {
 	params   map[string]string
 }
 
-// NewMenu creates a new step
-func NewMenu(menuFunc MenuFunc) Step {
+// NewStep creates a new step
+func NewStep(menuFunc MenuFunc) Step {
 	return Step{
 		Menu:   menuFunc,
 		params: make(map[string]string),
