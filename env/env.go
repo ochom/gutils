@@ -4,6 +4,7 @@ import (
 	"os"
 	"strconv"
 
+	_ "github.com/joho/godotenv/autoload"
 	"github.com/ochom/gutils/logs"
 )
 
