@@ -5,23 +5,15 @@ import (
 	"strings"
 )
 
-var mainMenu *Step
+var root *Step
 
 func New(step *Step) {
-	if mainMenu == nil {
-		mainMenu = step
-	}
+	root = step
 }
 
-type Params struct {
-	Text        string
-	SessionId   string
-	PhoneNumber string
-}
-
-// Process processes the ussd string and returns the next step
-func Process(data Params) (*Step, error) {
-	if mainMenu == nil {
+// Parse processes the ussd string and returns the next step
+func Parse(data Params) (*Step, error) {
+	if root == nil {
 		return nil, fmt.Errorf("mainMenu has not been created")
 	}
 
@@ -47,8 +39,7 @@ func Process(data Params) (*Step, error) {
 		SetSession(data.SessionId, k, v)
 	}
 
-	mainMenu.params = params
-	step := mainMenu.parse(mainMenu.params, parts)
+	step := root.parse(params, parts)
 	if step == nil {
 		return nil, fmt.Errorf("step not found")
 	}
