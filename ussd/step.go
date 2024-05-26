@@ -8,12 +8,15 @@ import (
 // MenuFunc returns the menu function
 type MenuFunc func(params map[string]string) string
 
+// Children returns the children
+type Children map[string]*Step
+
 // Step a ussd step
 type Step struct {
-	Menu     MenuFunc
-	End      bool
-	Children map[string]*Step
-	params   map[string]string
+	Menu   MenuFunc
+	End    bool
+	params map[string]string
+	Children
 }
 
 // NewStep creates a new step
@@ -25,14 +28,12 @@ func NewStep(menuFunc MenuFunc) Step {
 }
 
 // AddStep adds a new step
-func (s *Step) AddStep(key string, step *Step) {
-	children := s.Children
-	if children == nil {
+func (s *Step) AddStep(key string, newStep *Step) {
+	if len(s.Children) == 0 {
 		s.Children = make(map[string]*Step)
 	}
 
-	children[key] = step
-	s.Children = children
+	s.Children[key] = newStep
 }
 
 // GetResponse returns the response
