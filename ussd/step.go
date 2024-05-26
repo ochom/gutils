@@ -3,21 +3,16 @@ package ussd
 import (
 	"regexp"
 	"strings"
-
-	"github.com/ochom/gutils/arrays"
 )
 
 // MenuFunc returns the menu function
 type MenuFunc func(params map[string]string) string
 
-type Children []*Step
-
 // Step a ussd step
 type Step struct {
-	Key      string
 	Menu     MenuFunc
 	End      bool
-	Children Children
+	Children map[string]*Step
 	params   map[string]string
 }
 
@@ -30,8 +25,14 @@ func NewStep(menuFunc MenuFunc) Step {
 }
 
 // AddStep adds a new step
-func (s *Step) AddStep(step Step) {
-	s.Children = append(s.Children, &step)
+func (s *Step) AddStep(key string, step *Step) {
+	children := s.Children
+	if children == nil {
+		s.Children = make(map[string]*Step)
+	}
+
+	children[key] = step
+	s.Children = children
 }
 
 // GetResponse returns the response
@@ -55,22 +56,30 @@ func (s *Step) GetResponse() string {
 }
 
 // getMatchingChild returns the matching child
-func (s *Step) getMatchingChild(ussdPart string) *Step {
-	// first check exact matching children
-	child := arrays.Find(s.Children, func(c *Step) bool {
-		return strings.EqualFold(ussdPart, c.Key)
-	})
-
-	if child != nil {
+func (s *Step) getMatchingChild(key string) *Step {
+	// get exact match
+	child, ok := s.Children[key]
+	if ok {
 		return child
 	}
 
-	// then check if the key is a wildcard
-	child = arrays.Find(s.Children, func(c *Step) bool {
-		return c.Key == ""
-	})
+	// get regex match
+	for key := range s.Children {
+		if key == "" {
+			key = "*"
+		}
 
-	return child
+		matcher, err := regexp.Compile(key)
+		if err != nil {
+			continue
+		}
+
+		if matcher.MatchString(key) {
+			return child
+		}
+	}
+
+	return nil
 }
 
 // walk goes through the menu and finds matching children
@@ -87,26 +96,9 @@ func (s *Step) walk(ussdParts []string) *Step {
 		return s.getMatchingChild(ussdParts[0])
 	}
 
-	// first check kids that exactly match the first piece
-	for _, child := range s.Children {
-		if strings.EqualFold(ussdParts[0], child.Key) {
-			return child.walk(ussdParts[1:])
-		}
-	}
-
-	// check any item that matches the input as a regex
-	for _, child := range s.Children {
-		if child.Key == "" {
-			child.Key = "*"
-		}
-		matcher, err := regexp.Compile(child.Key)
-		if err != nil {
-			continue
-		}
-
-		if matcher.MatchString(ussdParts[0]) {
-			return child.walk(ussdParts[1:])
-		}
+	// get the child that matches the first piece
+	if child := s.getMatchingChild(ussdParts[0]); child != nil {
+		return child.walk(ussdParts[1:])
 	}
 
 	return nil
