@@ -3,8 +3,6 @@ package ussd
 import (
 	"fmt"
 	"strings"
-
-	"github.com/ochom/gutils/logs"
 )
 
 var mainMenu *Step
@@ -52,8 +50,7 @@ func Process(data Params) (*Step, error) {
 	mainMenu.params = params
 	step := mainMenu.parse(mainMenu.params, parts)
 	if step == nil {
-		logs.Error("Could not get the correct child for the ussd string")
-		return nil, fmt.Errorf("could not get the correct child for the ussd string")
+		return nil, fmt.Errorf("step not found")
 	}
 
 	return step, nil

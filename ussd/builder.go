@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/ochom/gutils/arrays"
-	"github.com/ochom/gutils/logs"
 )
 
 // MenuFunc returns the menu function
@@ -117,8 +116,7 @@ func (s *Step) walk(ussdParts []string) *Step {
 func (s *Step) parse(sessionData map[string]string, ussdParts []string) *Step {
 	child := s.walk(ussdParts)
 	if child == nil {
-		logs.Error("Could not get the correct child for the ussd string")
-		return nil
+		return s
 	}
 
 	remainingPieces := len(ussdParts)
