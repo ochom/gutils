@@ -2,6 +2,7 @@ package logs
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 )
@@ -9,7 +10,12 @@ import (
 var c *log.Logger
 
 func init() {
-	c = log.New(os.Stdout, "", log.LstdFlags)
+	c = log.New(os.Stdout, "", log.LstdFlags|log.Lshortfile)
+}
+
+// SetOutput ...
+func SetOutput(w io.Writer) {
+	c.SetOutput(w)
 }
 
 func print(s string) {

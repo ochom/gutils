@@ -3,26 +3,17 @@ package ussd
 import (
 	"fmt"
 	"strings"
-
-	"github.com/ochom/gutils/logs"
 )
 
-var mainMenu *Step
+var root *Step
 
-func InitMenu(step *Step) {
-	if mainMenu == nil {
-		mainMenu = step
-	}
+func New(step *Step) {
+	root = step
 }
 
-type Params struct {
-	Text        string
-	SessionId   string
-	PhoneNumber string
-}
-
+// Parse processes the ussd string and returns the next step
 func Parse(data Params) (*Step, error) {
-	if mainMenu == nil {
+	if root == nil {
 		return nil, fmt.Errorf("mainMenu has not been created")
 	}
 
@@ -40,15 +31,17 @@ func Parse(data Params) (*Step, error) {
 		"text":         data.Text,
 	}
 
+	if len(parts) > 0 {
+		params["input"] = parts[len(parts)-1]
+	}
+
 	for k, v := range params {
 		SetSession(data.SessionId, k, v)
 	}
 
-	mainMenu.params = params
-	step := mainMenu.parse(mainMenu.params, parts)
+	step := root.parse(params, parts)
 	if step == nil {
-		logs.Error("Could not get the correct child for the ussd string")
-		return nil, fmt.Errorf("could not get the correct child for the ussd string")
+		return nil, fmt.Errorf("step not found")
 	}
 
 	return step, nil

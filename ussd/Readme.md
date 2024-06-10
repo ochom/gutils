@@ -27,7 +27,7 @@ import (
 var mainMenu *ussd.Step
 
 func init(){
-  mainMenu = ussd.NewMenu(func(params map[string]string)string{
+  mainMenu = ussd.NewStep(func(params map[string]string)string{
     // you can also add checks here and return a dynamic welcome message
     // e.g check if the dialer is a new user
     return "Hello, welcome to GUtils USSD.\n1. Say hello\n2. Say goodbye"
@@ -71,6 +71,13 @@ func main(){
         PhoneNumber: req["phone_number"], // dialer phone number
         Text: req["text"], // the dialed text i.e *1*2*5#
       }
+
+      step, err := ussd.Process(params)
+      if err != nil{
+        return err
+      }
+
+      return ctx.JSON(step.GetResponse())
     }
   })
 
@@ -96,12 +103,12 @@ A `Step` should have the following properties
 
 ## What to expect in the params argues of a Menu func
 
-| Item         | Type   | Description                                                             |
-| ------------ | ------ | ----------------------------------------------------------------------- |
-| session_id   | string | The session id                                                          |
-| phone_number | string | session user phone number                                               |
-| text         | string | The full ussd string i.e `*401*2\*3#`                                   |
-| input        | string | the last value the user input i.e in `*401*2\*3#` the input will be `3` |
+| Item         | Type   | Description                                                            |
+| ------------ | ------ | ---------------------------------------------------------------------- |
+| session_id   | string | The session id                                                         |
+| phone_number | string | session user phone number                                              |
+| text         | string | The full ussd string i.e `*401*2*3#`                                   |
+| input        | string | the last value the user input i.e in `*401*2*3#` the input will be `3` |
 
 ## Word
 

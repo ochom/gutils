@@ -6,8 +6,8 @@ import (
 	"github.com/ochom/gutils/logs"
 )
 
-// ToJSON converts a struct to JSON
-func ToJSON(payload any) []byte {
+// ToBytes converts provided interface to slice of bytes
+func ToBytes(payload any) []byte {
 	if payload == nil {
 		return nil
 	}
@@ -31,8 +31,8 @@ func ToJSON(payload any) []byte {
 	return bytesPayload
 }
 
-// FromJSON converts json byte  to struct
-func FromJSON[T any](payload []byte) T {
+// FromBytes converts slice of bytes to provided interface
+func FromBytes[T any](payload []byte) T {
 	var data T
 	if payload == nil {
 		return data
