@@ -25,6 +25,7 @@ func ToBytes(payload any) []byte {
 	// Marshal the payload to JSON.
 	bytesPayload, err := json.Marshal(&payload)
 	if err != nil {
+		logs.Error("Failed to marshal JSON: %s", err.Error())
 		return nil
 	}
 
