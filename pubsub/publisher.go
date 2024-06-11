@@ -22,19 +22,18 @@ func NewPublisher(rabbitURL, exchange, queue string, exchangeType ExchangeType) 
 
 // publish ...
 func (p *publisher) publish(body []byte, delay time.Duration) error {
-	conn, ch, err := initQ(p.url)
+	ps, err := initQ(p.url)
 	if err != nil {
 		return fmt.Errorf("failed to initialize a connection: %s", err.Error())
 	}
-	defer ch.Close()
-	defer conn.Close()
+	defer ps.Close()
 
-	if err := initPubSub(ch, p.exchange, p.queue, p.exchangeType); err != nil {
+	if err := initPubSub(ps.ch, p.exchange, p.queue, p.exchangeType); err != nil {
 		return fmt.Errorf("failed to initialize a pubsub: %s", err.Error())
 	}
 
 	// publish message to exchange
-	err = ch.Publish(
+	err = ps.ch.Publish(
 		p.exchange, // exchange
 		p.queue,    // routing key
 		true,       // mandatory

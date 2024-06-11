@@ -17,23 +17,40 @@ var (
 	Delayed ExchangeType = "x-delayed-message"
 )
 
-func initQ(url string) (*amqp.Connection, *amqp.Channel, error) {
+// Pubsub ...
+type Pubsub struct {
+	conn *amqp.Connection
+	ch   *amqp.Channel
+}
+
+// Close ...
+func (p *Pubsub) Close() {
+	if err := p.conn.Close(); err != nil {
+		fmt.Println("failed to close connection: ", err.Error())
+	}
+
+	if err := p.ch.Close(); err != nil {
+		fmt.Println("failed to close channel: ", err.Error())
+	}
+}
+
+func initQ(url string) (*Pubsub, error) {
 	conn, err := amqp.Dial(url)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to connect to RabbitMQ: %s", err.Error())
+		return nil, fmt.Errorf("failed to connect to RabbitMQ: %s", err.Error())
 	}
 
 	ch, err := conn.Channel()
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to open a channel: %s", err.Error())
+		return nil, fmt.Errorf("failed to open a channel: %s", err.Error())
 	}
 
 	err = ch.Qos(10, 0, false) // fair dispatch
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to set QoS: %s", err.Error())
+		return nil, fmt.Errorf("failed to set QoS: %s", err.Error())
 	}
 
-	return conn, ch, nil
+	return &Pubsub{conn: conn, ch: ch}, nil
 }
 
 // initPubSub ...
