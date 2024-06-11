@@ -25,13 +25,8 @@ type Pubsub struct {
 
 // Close ...
 func (p *Pubsub) Close() {
-	if err := p.conn.Close(); err != nil {
-		fmt.Println("failed to close connection: ", err.Error())
-	}
-
-	if err := p.ch.Close(); err != nil {
-		fmt.Println("failed to close channel: ", err.Error())
-	}
+	_ = p.conn.Close()
+	_ = p.ch.Close()
 }
 
 func initQ(url string) (*Pubsub, error) {
