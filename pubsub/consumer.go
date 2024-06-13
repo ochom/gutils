@@ -1,6 +1,8 @@
 package pubsub
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // Consumer ...
 type Consumer struct {
@@ -40,19 +42,18 @@ func NewConsumer(rabbitURL, exchange, queue string, config ...Config) *Consumer 
 }
 
 // Consume consume messages from the channels
-func (c *Consumer) Consume(workerFunc func([]byte)) error {
-	conn, ch, err := initQ(c.url)
+func (c *Consumer) Consume(stop chan bool, workerFunc func([]byte)) error {
+	ps, err := initQ(c.url)
 	if err != nil {
 		return fmt.Errorf("failed to initialize a connection: %s", err.Error())
 	}
-	defer ch.Close()
-	defer conn.Close()
+	defer ps.Close()
 
-	if err := initPubSub(ch, c.exchange, c.queue, string(c.config.Type)); err != nil {
+	if err := initPubSub(ps.ch, c.exchange, c.queue, string(c.config.Type)); err != nil {
 		return fmt.Errorf("failed to initialize a pubsub: %s", err.Error())
 	}
 
-	deliveries, err := ch.Consume(
+	deliveries, err := ps.ch.Consume(
 		c.queue,            // queue
 		c.config.Tag,       // consumerTag
 		c.config.AutoAck,   // auto-ack
@@ -66,9 +67,12 @@ func (c *Consumer) Consume(workerFunc func([]byte)) error {
 		return fmt.Errorf("failed to consume messages: %s", err.Error())
 	}
 
-	for d := range deliveries {
-		workerFunc(d.Body)
+	for {
+		select {
+		case <-stop:
+			return fmt.Errorf("stop signal received")
+		case message := <-deliveries:
+			workerFunc(message.Body)
+		}
 	}
-
-	return nil
 }
