@@ -29,7 +29,7 @@ var config = &Config{
 // New initializes the database connection with GORM
 func New(configs ...*Config) (err error) {
 	for _, cfg := range configs {
-		if cfg.Driver != 0 {
+		if cfg.Driver != Sqlite {
 			config.Driver = cfg.Driver
 		}
 
