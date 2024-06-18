@@ -18,7 +18,7 @@ func Conn() *gorm.DB { return connection }
 
 // defaultConfig ...
 var config = &Config{
-	DatabaseType: Sqlite,
+	Driver:       Sqlite,
 	Url:          "gorm.db",
 	LogLevel:     logger.Silent,
 	MaxIdleConns: 10,
@@ -29,8 +29,8 @@ var config = &Config{
 // New initializes the database connection with GORM
 func New(configs ...*Config) (err error) {
 	for _, cfg := range configs {
-		if cfg.DatabaseType != "" {
-			config.DatabaseType = cfg.DatabaseType
+		if cfg.Driver != Sqlite {
+			config.Driver = cfg.Driver
 		}
 
 		if cfg.Url != "" {
@@ -58,7 +58,7 @@ func New(configs ...*Config) (err error) {
 }
 
 func createInstance() error {
-	switch config.DatabaseType {
+	switch config.Driver {
 	case Postgres:
 		return createPgInstance()
 	case MySQL:
