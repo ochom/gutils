@@ -1,118 +1,56 @@
 package cache
 
 import (
-	"sync"
 	"time"
-
-	"github.com/ochom/gutils/env"
-	"github.com/ochom/gutils/logs"
 )
 
-var cacheWorkers int
-var memoryCache map[string]cacheItem
-var mut sync.Mutex
-
-// V  is the type of the value to be stored in the cache
-type V []byte
-
-// cacheItem ...
-type cacheItem struct {
-	value     []byte
-	createdAt time.Time
-	expiry    time.Duration
-	callBack  func()
+// Cache ...
+type Cache interface {
+	set(key string, value V)
+	setWithExpiry(key string, value V, expiry time.Duration)
+	get(key string) V
+	delete(key string)
+	cleanUp()
 }
 
-// expired ...
-func (c cacheItem) expired() bool {
-	return time.Since(c.createdAt) > c.expiry
-}
+var conn Cache
 
-func init() {
-	cacheWorkers = env.Int("CACHE_TOTAL_WORKERS", 10)
-	memoryCache = make(map[string]cacheItem)
-	go CleanUp()
+// NewCache ...
+func Init(driver CacheDriver, url ...string) {
+	switch driver {
+	case RedisDriver:
+		conn = newRedisCache(url...)
+	case MemoryDriver:
+		conn = newMemoryCache()
+	}
+
+	go conn.cleanUp()
 }
 
 // Set ...
 func Set(key string, value V) {
-	expiry := time.Hour * time.Duration(env.Int("MAX_CACHE_HOUR", 24))
-	SetWithExpiry(key, value, expiry)
+	conn.set(key, value)
 }
 
 // SetWithExpiry ...
 func SetWithExpiry(key string, value V, expiry time.Duration) {
-	callback := func() {
-		logs.Info("Session item expired: %s", key)
-	}
-	SetWithCallback(key, value, expiry, callback)
-}
-
-// SetWithCallback ...
-func SetWithCallback(key string, value V, expiry time.Duration, callback func()) {
-	mut.Lock()
-	defer mut.Unlock()
-	item := cacheItem{
-		value:     value,
-		createdAt: time.Now(),
-		expiry:    expiry,
-		callBack:  callback,
-	}
-	memoryCache[key] = item
+	conn.setWithExpiry(key, value, expiry)
 }
 
 // Get ...
 func Get(key string) V {
-	mut.Lock()
-	defer mut.Unlock()
-
-	item, ok := memoryCache[key]
-	if !ok {
-		return nil
-	}
-
-	return item.value
+	return conn.get(key)
 }
 
 // Delete ...
 func Delete(key string) {
-	mut.Lock()
-	defer mut.Unlock()
-	delete(memoryCache, key)
+	conn.delete(key)
 }
 
-// CleanUp deletes expired cache items and calls their callbacks
+// CleanUp ...
 func CleanUp() {
-	jobs := make(chan cacheItem, 100)
-
-	//  start workers
-	for i := 0; i < cacheWorkers; i++ {
-		go runCallbacks(jobs)
-	}
-
-	tick(jobs)
-}
-
-// tick to run the ticker
-func tick(jobs chan<- cacheItem) {
-	tk := time.NewTicker(time.Second) // every second
-	for range tk.C {
-		// acquire
-		mut.Lock()
-		for key, item := range memoryCache {
-			if item.expired() {
-				jobs <- item
-				delete(memoryCache, key)
-			}
-		}
-
-		// release
-		mut.Unlock()
-	}
-}
-
-func runCallbacks(jobs <-chan cacheItem) {
-	for item := range jobs {
-		item.callBack()
+	tick := time.NewTicker(time.Second)
+	for range tick.C {
+		conn.cleanUp()
 	}
 }
