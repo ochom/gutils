@@ -19,15 +19,22 @@ type Cache interface {
 var conn Cache
 
 // NewCache ...
-func Init(driver CacheDriver, url ...string) {
+func Init(driver CacheDriver, url ...string) error {
 	switch driver {
 	case RedisDriver:
-		conn = newRedisCache(url...)
+		cn, err := newRedisCache(url...)
+		if err != nil {
+			return err
+		}
+		conn = cn
 	case MemoryDriver:
 		conn = newMemoryCache()
+		return nil
 	}
 
 	go conn.cleanUp()
+
+	return nil
 }
 
 // Client ...
