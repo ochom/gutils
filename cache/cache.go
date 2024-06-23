@@ -2,10 +2,13 @@ package cache
 
 import (
 	"time"
+
+	"github.com/redis/go-redis/v9"
 )
 
 // Cache ...
 type Cache interface {
+	getClient() *redis.Client
 	set(key string, value V)
 	setWithExpiry(key string, value V, expiry time.Duration)
 	get(key string) V
@@ -25,6 +28,11 @@ func Init(driver CacheDriver, url ...string) {
 	}
 
 	go conn.cleanUp()
+}
+
+// Client ...
+func Client() *redis.Client {
+	return conn.getClient()
 }
 
 // Set ...

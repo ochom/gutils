@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/ochom/gutils/env"
+	"github.com/redis/go-redis/v9"
 )
 
 // memoryCache implements Cache
@@ -20,6 +21,11 @@ func newMemoryCache() Cache {
 		items:        make(map[string]cacheItem),
 		mut:          sync.Mutex{},
 	}
+}
+
+// getClient ...
+func (m *memoryCache) getClient() *redis.Client {
+	return nil
 }
 
 // set ...

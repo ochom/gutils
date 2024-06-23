@@ -31,6 +31,11 @@ func newRedisCache(url ...string) Cache {
 	}
 }
 
+// getClient ...
+func (r *redisCache) getClient() *redis.Client {
+	return r.client
+}
+
 // set ...
 func (r *redisCache) set(key string, value V) {
 	r.setWithExpiry(key, value, 0)
