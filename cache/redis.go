@@ -46,7 +46,7 @@ func (r *redisCache) setWithExpiry(key string, value V, expiry time.Duration) {
 	}
 }
 
-// get
+// get ...
 func (r *redisCache) get(key string) V {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
