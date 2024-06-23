@@ -18,11 +18,6 @@ type Cache interface {
 
 var conn Cache
 
-func init() {
-	// initially set cache to memory unless explicitly defined in the Init function below
-	conn = newMemoryCache()
-}
-
 // NewCache ...
 func Init(driver CacheDriver, url ...string) {
 	switch driver {
