@@ -10,11 +10,11 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// internal connection initialized by the New function
-var connection *gorm.DB
+// internal db initialized by the New function
+var db *gorm.DB
 
-// Conn returns the database connection
-func Conn() *gorm.DB { return connection }
+// Conn returns the database db
+func Conn() *gorm.DB { return db }
 
 // defaultConfig ...
 var config = &Config{
@@ -26,7 +26,7 @@ var config = &Config{
 	ConnLifeTime: time.Hour,
 }
 
-// New initializes the database connection with GORM
+// New initializes the database db with GORM
 func New(configs ...*Config) (err error) {
 	for _, cfg := range configs {
 		if cfg.Driver != Sqlite {
@@ -68,53 +68,50 @@ func createInstance() error {
 	}
 }
 
-func createPgInstance() error {
-	conn, err := gorm.Open(postgres.Open(config.Url), &gorm.Config{
+func createPgInstance() (err error) {
+	db, err = gorm.Open(postgres.Open(config.Url), &gorm.Config{
 		Logger: logger.Default.LogMode(config.LogLevel),
 	})
 
 	if err != nil {
-		return err
+		return
 	}
 
-	connection = conn
 	return createPool()
 }
 
-func createMysqlInstance() error {
-	conn, err := gorm.Open(mysql.Open(config.Url), &gorm.Config{
+func createMysqlInstance() (err error) {
+	db, err = gorm.Open(mysql.Open(config.Url), &gorm.Config{
 		Logger: logger.Default.LogMode(config.LogLevel),
 	})
 
 	if err != nil {
-		return err
+		return
 	}
 
-	connection = conn
 	return createPool()
 }
 
-func createSqliteInstance() error {
+func createSqliteInstance() (err error) {
 	// - Set WAL mode (not strictly necessary each time because it's persisted in the database, but good for first run)
 	// - Set busy timeout, so concurrent writers wait on each other instead of erroring immediately
 	// - Enable foreign key checks
 	// -  see https://www.golang.dk/articles/go-and-sqlite-in-the-cloud
 
 	url := config.Url + "?_journal=WAL&_timeout=5000&_fk=true"
-	conn, err := gorm.Open(sqlite.Open(url), &gorm.Config{
+	db, err = gorm.Open(sqlite.Open(url), &gorm.Config{
 		Logger: logger.Default.LogMode(config.LogLevel),
 	})
 
 	if err != nil {
-		return err
+		return
 	}
 
-	connection = conn
 	return createPool()
 }
 
 func createPool() error {
-	sqlDB, err := connection.DB()
+	sqlDB, err := db.DB()
 	if err != nil {
 		return err
 	}
