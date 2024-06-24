@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -29,13 +30,13 @@ func (m *memoryCache) getClient() *redis.Client {
 }
 
 // set ...
-func (m *memoryCache) set(key string, value []byte) {
+func (m *memoryCache) set(key string, value []byte) error {
 	expiry := time.Hour * time.Duration(env.Int("MAX_CACHE_HOUR", 24))
-	m.setWithExpiry(key, value, expiry)
+	return m.setWithExpiry(key, value, expiry)
 }
 
 // setWithExpiry ...
-func (m *memoryCache) setWithExpiry(key string, value []byte, expiry time.Duration) {
+func (m *memoryCache) setWithExpiry(key string, value []byte, expiry time.Duration) error {
 	m.mut.Lock()
 	defer m.mut.Unlock()
 	item := cacheItem{
@@ -44,6 +45,8 @@ func (m *memoryCache) setWithExpiry(key string, value []byte, expiry time.Durati
 		expiry:    expiry,
 	}
 	m.items[key] = item
+
+	return nil
 }
 
 // get ...
@@ -60,10 +63,16 @@ func (m *memoryCache) get(key string) []byte {
 }
 
 // delete ...
-func (m *memoryCache) delete(key string) {
+func (m *memoryCache) delete(key string) error {
 	m.mut.Lock()
 	defer m.mut.Unlock()
+
+	if _, ok := m.items[key]; !ok {
+		return fmt.Errorf("key %s not found", key)
+	}
+
 	delete(m.items, key)
+	return nil
 }
 
 // cleanUp deletes expired cache items and calls their callbacks

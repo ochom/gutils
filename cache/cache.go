@@ -11,10 +11,10 @@ import (
 // Cache ...
 type Cache interface {
 	getClient() *redis.Client
-	set(key string, value []byte)
-	setWithExpiry(key string, value []byte, expiry time.Duration)
+	set(key string, value []byte) error
+	setWithExpiry(key string, value []byte, expiry time.Duration) error
 	get(key string) []byte
-	delete(key string)
+	delete(key string) error
 	cleanUp()
 }
 
