@@ -12,9 +12,6 @@ const (
 	Memory CacheDriver = "memory"
 )
 
-// V  is the type of the value to be stored in the cache
-type V []byte
-
 // cacheItem ...
 type cacheItem struct {
 	value     []byte

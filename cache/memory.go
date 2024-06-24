@@ -29,13 +29,13 @@ func (m *memoryCache) getClient() *redis.Client {
 }
 
 // set ...
-func (m *memoryCache) set(key string, value V) {
+func (m *memoryCache) set(key string, value []byte) {
 	expiry := time.Hour * time.Duration(env.Int("MAX_CACHE_HOUR", 24))
 	m.setWithExpiry(key, value, expiry)
 }
 
 // setWithExpiry ...
-func (m *memoryCache) setWithExpiry(key string, value V, expiry time.Duration) {
+func (m *memoryCache) setWithExpiry(key string, value []byte, expiry time.Duration) {
 	m.mut.Lock()
 	defer m.mut.Unlock()
 	item := cacheItem{
@@ -47,7 +47,7 @@ func (m *memoryCache) setWithExpiry(key string, value V, expiry time.Duration) {
 }
 
 // get ...
-func (m *memoryCache) get(key string) V {
+func (m *memoryCache) get(key string) []byte {
 	m.mut.Lock()
 	defer m.mut.Unlock()
 

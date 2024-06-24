@@ -1,17 +1,19 @@
 package cache
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/ochom/gutils/helpers"
 	"github.com/redis/go-redis/v9"
 )
 
 // Cache ...
 type Cache interface {
 	getClient() *redis.Client
-	set(key string, value V)
-	setWithExpiry(key string, value V, expiry time.Duration)
-	get(key string) V
+	set(key string, value []byte)
+	setWithExpiry(key string, value []byte, expiry time.Duration)
+	get(key string) []byte
 	delete(key string)
 	cleanUp()
 }
@@ -49,18 +51,23 @@ func Client() *redis.Client {
 }
 
 // Set ...
-func Set(key string, value V) {
-	conn.set(key, value)
+func Set[T any](key string, value T) {
+	conn.set(key, helpers.ToBytes(value))
 }
 
 // SetWithExpiry ...
-func SetWithExpiry(key string, value V, expiry time.Duration) {
-	conn.setWithExpiry(key, value, expiry)
+func SetWithExpiry[T any](key string, value T, expiry time.Duration) {
+	conn.setWithExpiry(key, helpers.ToBytes(value), expiry)
 }
 
 // Get ...
-func Get(key string) V {
-	return conn.get(key)
+func Get[T any](key string) (T, error) {
+	v := conn.get(key)
+	if v == nil {
+		return *new(T), fmt.Errorf("key %s not found", key)
+	}
+
+	return helpers.FromBytes[T](v), nil
 }
 
 // Delete ...
