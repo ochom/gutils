@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ochom/gutils/env"
 	"github.com/ochom/gutils/helpers"
 	"github.com/redis/go-redis/v9"
 )
@@ -22,27 +23,27 @@ var conn Cache
 
 // default to memory cache
 func init() {
-	conn = newMemoryCache()
+	driver := env.Get("CACHE_DRIVER", "memory")
+	if driver == "memory" {
+		conn = newMemoryCache()
+	} else {
+		url := env.Get("REDIS_URL", "localhost:6379")
+		password := env.Get("REDIS_PASSWORD", "")
+		dbIndex := env.Int("REDIS_DB_INDEX", 0)
+		con, err := newRedisCache(&Config{
+			Url:      url,
+			DbIndex:  dbIndex,
+			Password: password,
+		})
 
-	go conn.cleanUp()
-}
+		if err != nil {
+			panic(err)
+		}
 
-// NewCache ...
-func Init(driver CacheDriver, url ...string) error {
-	if driver == Memory {
-		// cache is already running return nil
-		return nil
+		conn = con
 	}
 
-	cn, err := newRedisCache(url...)
-	if err != nil {
-		return err
-	}
-
-	conn = cn
-
 	go conn.cleanUp()
-	return nil
 }
 
 // Client ...

@@ -2,7 +2,6 @@ package cache
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/ochom/gutils/logs"
@@ -14,19 +13,12 @@ type redisCache struct {
 	client *redis.Client
 }
 
-func newRedisCache(url ...string) (Cache, error) {
-	if len(url) == 0 {
-		logs.Error("newRedisCache: url is empty")
-		return nil, errors.New("url is empty")
-	}
-
-	opt, err := redis.ParseURL(url[0])
-	if err != nil {
-		logs.Error("newRedisCache: %s", err.Error())
-		return nil, err
-	}
-
-	cl := redis.NewClient(opt)
+func newRedisCache(cfg *Config) (Cache, error) {
+	cl := redis.NewClient(&redis.Options{
+		Addr:     cfg.Url,
+		Password: cfg.Password,
+		DB:       cfg.DbIndex,
+	})
 	return &redisCache{
 		client: cl,
 	}, nil
