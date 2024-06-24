@@ -51,13 +51,13 @@ func Client() *redis.Client {
 }
 
 // Set ...
-func Set[T any](key string, value T) {
-	conn.set(key, helpers.ToBytes(value))
+func Set[T any](key string, value T) error {
+	return conn.set(key, helpers.ToBytes(value))
 }
 
 // SetWithExpiry ...
-func SetWithExpiry[T any](key string, value T, expiry time.Duration) {
-	conn.setWithExpiry(key, helpers.ToBytes(value), expiry)
+func SetWithExpiry[T any](key string, value T, expiry time.Duration) error {
+	return conn.setWithExpiry(key, helpers.ToBytes(value), expiry)
 }
 
 // Get ...
@@ -71,8 +71,8 @@ func Get[T any](key string) (T, error) {
 }
 
 // Delete ...
-func Delete(key string) {
-	conn.delete(key)
+func Delete(key string) error {
+	return conn.delete(key)
 }
 
 // CleanUp ...
