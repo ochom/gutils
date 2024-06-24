@@ -8,8 +8,8 @@ import (
 type CacheDriver string
 
 const (
-	RedisDriver  CacheDriver = "redis"
-	MemoryDriver CacheDriver = "memory"
+	Redis  CacheDriver = "redis"
+	Memory CacheDriver = "memory"
 )
 
 // V  is the type of the value to be stored in the cache

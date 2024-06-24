@@ -18,22 +18,28 @@ type Cache interface {
 
 var conn Cache
 
+// default to memory cache
+func init() {
+	conn = newMemoryCache()
+
+	go conn.cleanUp()
+}
+
 // NewCache ...
 func Init(driver CacheDriver, url ...string) error {
-	switch driver {
-	case RedisDriver:
-		cn, err := newRedisCache(url...)
-		if err != nil {
-			return err
-		}
-		conn = cn
-	case MemoryDriver:
-		conn = newMemoryCache()
+	if driver == Memory {
+		// cache is already running return nil
 		return nil
 	}
 
-	go conn.cleanUp()
+	cn, err := newRedisCache(url...)
+	if err != nil {
+		return err
+	}
 
+	conn = cn
+
+	go conn.cleanUp()
 	return nil
 }
 
