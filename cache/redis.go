@@ -19,6 +19,12 @@ func newRedisCache(cfg *Config) (Cache, error) {
 		Password: cfg.Password,
 		DB:       cfg.DbIndex,
 	})
+
+	if err := cl.Ping(context.Background()).Err(); err != nil {
+		return nil, err
+	}
+
+	logs.Info("Connected to redis")
 	return &redisCache{
 		client: cl,
 	}, nil
