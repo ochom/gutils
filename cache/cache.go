@@ -1,18 +1,21 @@
 package cache
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/ochom/gutils/env"
+	"github.com/ochom/gutils/helpers"
 	"github.com/redis/go-redis/v9"
 )
 
 // Cache ...
 type Cache interface {
 	getClient() *redis.Client
-	set(key string, value V)
-	setWithExpiry(key string, value V, expiry time.Duration)
-	get(key string) V
-	delete(key string)
+	set(key string, value []byte) error
+	setWithExpiry(key string, value []byte, expiry time.Duration) error
+	get(key string) []byte
+	delete(key string) error
 	cleanUp()
 }
 
@@ -20,27 +23,27 @@ var conn Cache
 
 // default to memory cache
 func init() {
-	conn = newMemoryCache()
+	driver := env.Get("CACHE_DRIVER", "memory")
+	if driver == "memory" {
+		conn = newMemoryCache()
+	} else {
+		url := env.Get("REDIS_URL", "localhost:6379")
+		password := env.Get("REDIS_PASSWORD", "")
+		dbIndex := env.Int("REDIS_DB_INDEX", 0)
+		con, err := newRedisCache(&Config{
+			Url:      url,
+			DbIndex:  dbIndex,
+			Password: password,
+		})
 
-	go conn.cleanUp()
-}
+		if err != nil {
+			panic(err)
+		}
 
-// NewCache ...
-func Init(driver CacheDriver, url ...string) error {
-	if driver == Memory {
-		// cache is already running return nil
-		return nil
+		conn = con
 	}
 
-	cn, err := newRedisCache(url...)
-	if err != nil {
-		return err
-	}
-
-	conn = cn
-
 	go conn.cleanUp()
-	return nil
 }
 
 // Client ...
@@ -49,23 +52,28 @@ func Client() *redis.Client {
 }
 
 // Set ...
-func Set(key string, value V) {
-	conn.set(key, value)
+func Set[T any](key string, value T) error {
+	return conn.set(key, helpers.ToBytes(value))
 }
 
 // SetWithExpiry ...
-func SetWithExpiry(key string, value V, expiry time.Duration) {
-	conn.setWithExpiry(key, value, expiry)
+func SetWithExpiry[T any](key string, value T, expiry time.Duration) error {
+	return conn.setWithExpiry(key, helpers.ToBytes(value), expiry)
 }
 
 // Get ...
-func Get(key string) V {
-	return conn.get(key)
+func Get[T any](key string) (T, error) {
+	v := conn.get(key)
+	if v == nil {
+		return *new(T), fmt.Errorf("key %s not found", key)
+	}
+
+	return helpers.FromBytes[T](v), nil
 }
 
 // Delete ...
-func Delete(key string) {
-	conn.delete(key)
+func Delete(key string) error {
+	return conn.delete(key)
 }
 
 // CleanUp ...

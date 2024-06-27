@@ -12,9 +12,6 @@ const (
 	Memory CacheDriver = "memory"
 )
 
-// V  is the type of the value to be stored in the cache
-type V []byte
-
 // cacheItem ...
 type cacheItem struct {
 	value     []byte
@@ -25,4 +22,11 @@ type cacheItem struct {
 // expired ...
 func (c cacheItem) expired() bool {
 	return time.Since(c.createdAt) > c.expiry
+}
+
+// Config ...
+type Config struct {
+	Url      string
+	DbIndex  int
+	Password string
 }
