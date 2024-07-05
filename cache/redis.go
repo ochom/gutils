@@ -42,7 +42,7 @@ func (r *redisCache) set(key string, value []byte) error {
 
 // setWithExpiry ...
 func (r *redisCache) setWithExpiry(key string, value []byte, expiry time.Duration) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 	defer cancel()
 
 	if err := r.client.Set(ctx, key, value, expiry).Err(); err != nil {
@@ -55,7 +55,7 @@ func (r *redisCache) setWithExpiry(key string, value []byte, expiry time.Duratio
 
 // get ...
 func (r *redisCache) get(key string) []byte {
-	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 	defer cancel()
 
 	v, err := r.client.Get(ctx, key).Result()
@@ -68,7 +68,7 @@ func (r *redisCache) get(key string) []byte {
 
 // delete ...
 func (r *redisCache) delete(key string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 	defer cancel()
 
 	if err := r.client.Del(ctx, key).Err(); err != nil {
