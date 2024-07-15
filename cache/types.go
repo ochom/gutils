@@ -4,12 +4,9 @@ import (
 	"time"
 )
 
-// CacheDriver ...
-type CacheDriver string
-
 const (
-	Redis  CacheDriver = "redis"
-	Memory CacheDriver = "memory"
+	Memory = iota
+	Redis
 )
 
 // cacheItem ...

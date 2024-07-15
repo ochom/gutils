@@ -23,24 +23,13 @@ var conn Cache
 
 // default to memory cache
 func init() {
-	driver := env.Get("CACHE_DRIVER", "memory")
-	if driver == "memory" {
+	switch env.Int("CACHE_DRIVER", 0) {
+	case Memory:
 		conn = newMemoryCache()
-	} else {
-		url := env.Get("REDIS_URL", "localhost:6379")
-		password := env.Get("REDIS_PASSWORD", "")
-		dbIndex := env.Int("REDIS_DB_INDEX", 0)
-		con, err := newRedisCache(&Config{
-			Url:      url,
-			DbIndex:  dbIndex,
-			Password: password,
-		})
-
-		if err != nil {
-			panic(err)
-		}
-
-		conn = con
+	case Redis:
+		conn = newRedisCache()
+	default:
+		panic("unknown cache driver")
 	}
 
 	go conn.cleanUp()

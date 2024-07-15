@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/ochom/gutils/env"
 	"github.com/ochom/gutils/logs"
 	"github.com/redis/go-redis/v9"
 )
@@ -13,21 +14,20 @@ type redisCache struct {
 	client *redis.Client
 }
 
-func newRedisCache(cfg *Config) (Cache, error) {
+func newRedisCache() Cache {
 	cl := redis.NewClient(&redis.Options{
-		Addr:     cfg.Url,
-		Password: cfg.Password,
-		DB:       cfg.DbIndex,
+		Addr:     env.Get("REDIS_URL", "localhost:6379"),
+		Password: env.Get("REDIS_PASSWORD", ""),
+		DB:       env.Int("REDIS_DB_INDEX", 0),
 	})
 
 	if err := cl.Ping(context.Background()).Err(); err != nil {
-		return nil, err
+		logs.Error("newRedisCache: %s", err.Error())
+		return newMemoryCache()
 	}
 
 	logs.Info("Connected to redis")
-	return &redisCache{
-		client: cl,
-	}, nil
+	return &redisCache{client: cl}
 }
 
 // getClient ...
