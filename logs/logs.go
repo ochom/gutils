@@ -7,6 +7,13 @@ import (
 	"os"
 )
 
+const (
+	ColorReset  = "\033[0m"
+	ColorRed    = "\033[31m"
+	ColorGreen  = "\033[32m"
+	ColorYellow = "\033[33m"
+)
+
 var c *log.Logger
 
 func init() {
@@ -24,21 +31,21 @@ func print(s string) {
 
 // Info ...
 func Info(format string, args ...any) {
-	print("INFO: " + fmt.Sprintf(format, args...))
+	print(fmt.Sprintf("%sINFO%s: %s", ColorGreen, ColorReset, fmt.Sprintf(format, args...)))
 }
 
 // Warn ...
 func Warn(format string, args ...any) {
-	print("WARN: " + fmt.Sprintf(format, args...))
+	print(fmt.Sprintf("%sWARN%s: %s", ColorYellow, ColorReset, fmt.Sprintf(format, args...)))
 }
 
 // Error ...
 func Error(format string, args ...any) {
-	print("ERROR: " + fmt.Sprintf(format, args...))
+	print(fmt.Sprintf("%sERROR%s: %s", ColorRed, ColorReset, fmt.Sprintf(format, args...)))
 }
 
 // Fatal ...
 func Fatal(format string, args ...any) {
-	print("FATAL: " + fmt.Sprintf(format, args...))
+	print(fmt.Sprintf("%sFATAL%s: %s", ColorRed, ColorReset, fmt.Sprintf(format, args...)))
 	os.Exit(1)
 }
