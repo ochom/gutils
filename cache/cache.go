@@ -16,7 +16,6 @@ type Cache interface {
 	setWithExpiry(key string, value []byte, expiry time.Duration) error
 	get(key string) []byte
 	delete(key string) error
-	cleanUp()
 }
 
 var conn Cache
@@ -32,7 +31,6 @@ func init() {
 		panic("unknown cache driver")
 	}
 
-	go conn.cleanUp()
 }
 
 // Client ...
@@ -63,12 +61,4 @@ func Get[T any](key string) (T, error) {
 // Delete ...
 func Delete(key string) error {
 	return conn.delete(key)
-}
-
-// CleanUp ...
-func CleanUp() {
-	tick := time.NewTicker(time.Second)
-	for range tick.C {
-		conn.cleanUp()
-	}
 }

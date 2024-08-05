@@ -78,7 +78,3 @@ func (r *redisCache) delete(key string) error {
 
 	return nil
 }
-
-func (r *redisCache) cleanUp() {
-	// TODO
-}

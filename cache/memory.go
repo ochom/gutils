@@ -17,11 +17,14 @@ type memoryCache struct {
 }
 
 func newMemoryCache() Cache {
-	return &memoryCache{
+	c := &memoryCache{
 		cacheWorkers: env.Int("CACHE_TOTAL_WORKERS", 10),
 		items:        make(map[string]cacheItem),
 		mut:          sync.Mutex{},
 	}
+
+	go c.cleanUp()
+	return c
 }
 
 // getClient ...
@@ -77,11 +80,15 @@ func (m *memoryCache) delete(key string) error {
 
 // cleanUp deletes expired cache items and calls their callbacks
 func (m *memoryCache) cleanUp() {
-	m.mut.Lock()
-	defer m.mut.Unlock()
-	for key, item := range m.items {
-		if item.expired() {
-			delete(m.items, key)
+	for {
+		m.mut.Lock()
+		for key, item := range m.items {
+			if item.expired() {
+				delete(m.items, key)
+			}
 		}
+
+		m.mut.Unlock()
+		<-time.After(time.Second)
 	}
 }
