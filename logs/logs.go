@@ -12,6 +12,7 @@ const (
 	ColorRed    = "\033[31m"
 	ColorGreen  = "\033[32m"
 	ColorYellow = "\033[33m"
+	ColorBlue   = "\033[34m"
 )
 
 var c *log.Logger
@@ -27,6 +28,11 @@ func SetOutput(w io.Writer) {
 
 func print(s string) {
 	_ = c.Output(3, s)
+}
+
+// Debug ...
+func Debug(format string, args ...any) {
+	print(fmt.Sprintf("%sDEBUG%s: %s", ColorBlue, ColorReset, fmt.Sprintf(format, args...)))
 }
 
 // Info ...
