@@ -87,7 +87,7 @@ func createInstance(config *Config) (*gorm.DB, error) {
 }
 
 func createPgInstance(config *Config) (*gorm.DB, error) {
-	db, err := gorm.Open(postgres.Open(config.Url), &gorm.Config{
+	conn, err := gorm.Open(postgres.Open(config.Url), &gorm.Config{
 		Logger: logger.Default.LogMode(config.LogLevel),
 	})
 
@@ -95,11 +95,11 @@ func createPgInstance(config *Config) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	return createPool(db, config)
+	return createPool(conn, config)
 }
 
 func createMysqlInstance(config *Config) (*gorm.DB, error) {
-	db, err := gorm.Open(mysql.Open(config.Url), &gorm.Config{
+	conn, err := gorm.Open(mysql.Open(config.Url), &gorm.Config{
 		Logger: logger.Default.LogMode(config.LogLevel),
 	})
 
@@ -107,7 +107,7 @@ func createMysqlInstance(config *Config) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	return createPool(db, config)
+	return createPool(conn, config)
 }
 
 func createSqliteInstance(config *Config) (*gorm.DB, error) {
@@ -117,7 +117,7 @@ func createSqliteInstance(config *Config) (*gorm.DB, error) {
 	// -  see https://www.golang.dk/articles/go-and-sqlite-in-the-cloud
 
 	url := config.Url + "?_journal=WAL&_timeout=5000&_fk=true"
-	db, err := gorm.Open(sqlite.Open(url), &gorm.Config{
+	conn, err := gorm.Open(sqlite.Open(url), &gorm.Config{
 		Logger: logger.Default.LogMode(config.LogLevel),
 	})
 
@@ -125,18 +125,18 @@ func createSqliteInstance(config *Config) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	return createPool(db, config)
+	return createPool(conn, config)
 }
 
-func createPool(db *gorm.DB, config *Config) (*gorm.DB, error) {
-	sqlDB, err := db.DB()
+func createPool(conn *gorm.DB, config *Config) (*gorm.DB, error) {
+	sqlDB, err := conn.DB()
 	if err != nil {
-		return db, err
+		return conn, err
 	}
 
 	sqlDB.SetMaxIdleConns(config.MaxIdleConns)
 	sqlDB.SetMaxOpenConns(config.MaxOpenConns)
 	sqlDB.SetConnMaxLifetime(config.ConnLifeTime)
 
-	return db, nil
+	return conn, nil
 }
