@@ -44,7 +44,7 @@ func NewConsumer(rabbitURL, exchange, queue string, config ...Config) *Consumer 
 }
 
 // Consume consume messages from the channels
-func (c *Consumer) Consume(stop chan bool, workerFunc func([]byte)) error {
+func (c *Consumer) Consume(workerFunc func([]byte)) error {
 	conn, err := amqp.Dial(c.url)
 	if err != nil {
 		return fmt.Errorf("failed to connect to RabbitMQ: %s", err.Error())
