@@ -8,10 +8,9 @@ import (
 
 // Consumer ...
 type Consumer struct {
-	url      string
-	exchange string
-	queue    string
-	config   Config
+	url    string
+	queue  string
+	config Config
 }
 
 type Config struct {
@@ -33,8 +32,8 @@ var defaultConfig = Config{
 }
 
 // Create a new consumer instance
-func NewConsumer(rabbitURL, exchange, queue string, config ...Config) *Consumer {
-	c := Consumer{url: rabbitURL, exchange: exchange, queue: queue, config: defaultConfig}
+func NewConsumer(rabbitURL, queue string, config ...Config) *Consumer {
+	c := Consumer{url: rabbitURL, queue: queue, config: defaultConfig}
 
 	if len(config) > 0 {
 		c.config = config[0]
