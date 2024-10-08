@@ -81,7 +81,7 @@ func initPubSub(ch *amqp.Channel, exchangeName, queueName, exchangeType string) 
 	// bind queue to exchange
 	err = ch.QueueBind(
 		q.Name,       // queue name
-		q.Name,       // routing key
+		"",           // routing key
 		exchangeName, // exchange
 		false,        // no-wait
 		nil,

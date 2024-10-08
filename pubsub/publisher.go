@@ -35,7 +35,7 @@ func (p *publisher) publish(body []byte, delay time.Duration) error {
 	// publish message to exchange
 	err = ps.ch.Publish(
 		p.exchange, // exchange
-		p.queue,    // routing key
+		"",         // routing key
 		true,       // mandatory
 		false,      // immediate
 		amqp.Publishing{
