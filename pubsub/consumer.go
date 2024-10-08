@@ -2,6 +2,8 @@ package pubsub
 
 import (
 	"fmt"
+
+	"github.com/streadway/amqp"
 )
 
 // Consumer ...
@@ -43,18 +45,34 @@ func NewConsumer(rabbitURL, exchange, queue string, config ...Config) *Consumer 
 
 // Consume consume messages from the channels
 func (c *Consumer) Consume(stop chan bool, workerFunc func([]byte)) error {
-	ps, err := initQ(c.url)
+	conn, err := amqp.Dial(c.url)
 	if err != nil {
-		return fmt.Errorf("failed to initialize a connection: %s", err.Error())
-	}
-	defer ps.Close()
-
-	if err := initPubSub(ps.ch, c.exchange, c.queue, string(c.config.Type)); err != nil {
-		return fmt.Errorf("failed to initialize a pubsub: %s", err.Error())
+		return fmt.Errorf("failed to connect to RabbitMQ: %s", err.Error())
 	}
 
-	deliveries, err := ps.ch.Consume(
-		c.queue,            // queue
+	defer conn.Close()
+
+	ch, err := conn.Channel()
+	if err != nil {
+		return fmt.Errorf("failed to open a channel: %s", err.Error())
+	}
+
+	defer ch.Close()
+
+	q, err := ch.QueueDeclare(
+		c.queue, // name
+		true,    // durable
+		false,   // delete when unused
+		false,   // exclusive
+		false,   // no-wait
+		nil,     // arguments
+	)
+	if err != nil {
+		return fmt.Errorf("queue Declare: %s", err.Error())
+	}
+
+	deliveries, err := ch.Consume(
+		q.Name,             // queue
 		c.config.Tag,       // consumerTag
 		c.config.AutoAck,   // auto-ack
 		c.config.Exclusive, // exclusive
@@ -67,12 +85,9 @@ func (c *Consumer) Consume(stop chan bool, workerFunc func([]byte)) error {
 		return fmt.Errorf("failed to consume messages: %s", err.Error())
 	}
 
-	for {
-		select {
-		case <-stop:
-			return fmt.Errorf("stop signal received")
-		case message := <-deliveries:
-			workerFunc(message.Body)
-		}
+	for message := range deliveries {
+		workerFunc(message.Body)
 	}
+
+	return nil
 }
