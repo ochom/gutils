@@ -6,45 +6,71 @@ import (
 	"github.com/streadway/amqp"
 )
 
-// Consumer ...
-type Consumer struct {
-	url    string
-	queue  string
-	config Config
+// consumer ...
+type consumer struct {
+	connectionName string
+	url            string
+	queue          string
+
+	// more
+	tag       string
+	autoAck   bool
+	exclusive bool
+	noLocal   bool
+	noWait    bool
 }
 
-type Config struct {
-	Type      ExchangeType
-	Tag       string
-	AutoAck   bool
-	Exclusive bool
-	NoLocal   bool
-	NoWait    bool
+// SetConnectionName implements Consumer.
+func (c *consumer) SetConnectionName(connectionName string) {
+	c.connectionName = connectionName
 }
 
-var defaultConfig = Config{
-	Type:      Direct,
-	Tag:       "",
-	AutoAck:   true,
-	Exclusive: false,
-	NoLocal:   false,
-	NoWait:    false,
+// SetAutoAck implements Consumer.
+func (c *consumer) SetAutoAck(autoAck bool) {
+	c.autoAck = autoAck
+}
+
+// SetExclusive implements Consumer.
+func (c *consumer) SetExclusive(exclusive bool) {
+	c.exclusive = exclusive
+}
+
+// SetNoLocal implements Consumer.
+func (c *consumer) SetNoLocal(noLocal bool) {
+	c.noLocal = noLocal
+}
+
+// SetNoWait implements Consumer.
+func (c *consumer) SetNoWait(noWait bool) {
+	c.noWait = noWait
+}
+
+// SetTag implements Consumer.
+func (c *consumer) SetTag(tag string) {
+	c.tag = tag
 }
 
 // Create a new consumer instance
-func NewConsumer(rabbitURL, queue string, config ...Config) *Consumer {
-	c := Consumer{url: rabbitURL, queue: queue, config: defaultConfig}
-
-	if len(config) > 0 {
-		c.config = config[0]
+func NewConsumer(rabbitURL, queueName string) Consumer {
+	return &consumer{
+		url:       rabbitURL,
+		queue:     queueName,
+		autoAck:   true,
+		exclusive: false,
+		noLocal:   false,
+		noWait:    false,
 	}
-
-	return &c
 }
 
 // Consume consume messages from the channels
-func (c *Consumer) Consume(workerFunc func([]byte)) error {
-	conn, err := amqp.Dial(c.url)
+func (c *consumer) Consume(workerFunc func([]byte)) error {
+	cfg := amqp.Config{
+		Properties: amqp.Table{
+			"connection_name": c.connectionName,
+		},
+	}
+
+	conn, err := amqp.DialConfig(c.url, cfg)
 	if err != nil {
 		return fmt.Errorf("failed to connect to RabbitMQ: %s", err.Error())
 	}
@@ -71,13 +97,13 @@ func (c *Consumer) Consume(workerFunc func([]byte)) error {
 	}
 
 	deliveries, err := ch.Consume(
-		q.Name,             // queue
-		c.config.Tag,       // consumerTag
-		c.config.AutoAck,   // auto-ack
-		c.config.Exclusive, // exclusive
-		c.config.NoLocal,   // no-local
-		c.config.NoWait,    // no-wait
-		nil,                // args
+		q.Name,      // queue
+		c.tag,       // consumerTag
+		c.autoAck,   // auto-ack
+		c.exclusive, // exclusive
+		c.noLocal,   // no-local
+		c.noWait,    // no-wait
+		nil,         // args
 	)
 
 	if err != nil {
