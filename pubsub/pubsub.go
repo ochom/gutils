@@ -14,6 +14,7 @@ var (
 )
 
 type Publisher interface {
+	SetConnectionName(string)
 	SetExchangeType(ExchangeType)
 	SetRoutingKey(string)
 	Publish([]byte) error

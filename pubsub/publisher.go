@@ -9,11 +9,12 @@ import (
 
 // publisher ...
 type publisher struct {
-	url          string
-	exchange     string
-	queue        string
-	exchangeType ExchangeType
-	routingKey   string
+	connectionName string
+	url            string
+	exchange       string
+	queue          string
+	exchangeType   ExchangeType
+	routingKey     string
 }
 
 // NewPublisher  creates a new publisher to rabbit
@@ -24,6 +25,10 @@ func NewPublisher(rabbitURL, exchangeName, queueName string) Publisher {
 		queue:        queueName,
 		exchangeType: Direct,
 	}
+}
+
+func (p *publisher) SetConnectionName(connectionName string) {
+	p.connectionName = connectionName
 }
 
 func (p *publisher) SetRoutingKey(routingKey string) {
