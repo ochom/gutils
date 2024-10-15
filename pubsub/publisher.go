@@ -96,7 +96,13 @@ func (p *publisher) initPubSub(ch *amqp.Channel) error {
 
 // publish ...
 func (p *publisher) publish(body []byte, delay time.Duration) error {
-	conn, err := amqp.Dial(p.url)
+	cfg := amqp.Config{
+		Properties: amqp.Table{
+			"connection_name": p.connectionName,
+		},
+	}
+
+	conn, err := amqp.DialConfig(p.url, cfg)
 	if err != nil {
 		return fmt.Errorf("failed to connect to RabbitMQ: %s", err.Error())
 	}
