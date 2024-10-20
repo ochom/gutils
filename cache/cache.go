@@ -1,46 +1,36 @@
 package cache
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/ochom/gutils/env"
+	"github.com/ochom/gutils/helpers"
 	"github.com/redis/go-redis/v9"
 )
 
 // Cache ...
 type Cache interface {
 	getClient() *redis.Client
-	set(key string, value V)
-	setWithExpiry(key string, value V, expiry time.Duration)
-	get(key string) V
-	delete(key string)
-	cleanUp()
+	set(key string, value []byte) error
+	setWithExpiry(key string, value []byte, expiry time.Duration) error
+	get(key string) []byte
+	delete(key string) error
 }
 
 var conn Cache
 
 // default to memory cache
 func init() {
-	conn = newMemoryCache()
-
-	go conn.cleanUp()
-}
-
-// NewCache ...
-func Init(driver CacheDriver, url ...string) error {
-	if driver == Memory {
-		// cache is already running return nil
-		return nil
+	switch env.Int("CACHE_DRIVER", 0) {
+	case Memory:
+		conn = newMemoryCache()
+	case Redis:
+		conn = newRedisCache()
+	default:
+		panic("unknown cache driver")
 	}
 
-	cn, err := newRedisCache(url...)
-	if err != nil {
-		return err
-	}
-
-	conn = cn
-
-	go conn.cleanUp()
-	return nil
 }
 
 // Client ...
@@ -49,29 +39,26 @@ func Client() *redis.Client {
 }
 
 // Set ...
-func Set(key string, value V) {
-	conn.set(key, value)
+func Set[T any](key string, value T) error {
+	return conn.set(key, helpers.ToBytes(value))
 }
 
 // SetWithExpiry ...
-func SetWithExpiry(key string, value V, expiry time.Duration) {
-	conn.setWithExpiry(key, value, expiry)
+func SetWithExpiry[T any](key string, value T, expiry time.Duration) error {
+	return conn.setWithExpiry(key, helpers.ToBytes(value), expiry)
 }
 
 // Get ...
-func Get(key string) V {
-	return conn.get(key)
+func Get[T any](key string) (T, error) {
+	v := conn.get(key)
+	if v == nil {
+		return *new(T), fmt.Errorf("key %s not found", key)
+	}
+
+	return helpers.FromBytes[T](v), nil
 }
 
 // Delete ...
-func Delete(key string) {
-	conn.delete(key)
-}
-
-// CleanUp ...
-func CleanUp() {
-	tick := time.NewTicker(time.Second)
-	for range tick.C {
-		conn.cleanUp()
-	}
+func Delete(key string) error {
+	return conn.delete(key)
 }
