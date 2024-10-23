@@ -125,10 +125,10 @@ func (p *publisher) publish(body []byte, delay time.Duration) error {
 
 	// publish message to exchange
 	err = channel.Publish(
-		p.exchange, // exchange
-		"",         // routing key
-		true,       // mandatory
-		false,      // immediate
+		p.exchange,   // exchange
+		p.routingKey, // routing key
+		true,         // mandatory
+		false,        // immediate
 		amqp.Publishing{
 			ContentType:  "application/json",
 			Body:         body,
