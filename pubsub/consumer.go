@@ -12,6 +12,10 @@ type consumer struct {
 	url            string
 	queue          string
 
+	// basic
+	durable          bool
+	deleteWhenUnused bool
+
 	// more
 	tag       string
 	autoAck   bool
@@ -23,6 +27,16 @@ type consumer struct {
 // SetConnectionName implements Consumer.
 func (c *consumer) SetConnectionName(connectionName string) {
 	c.connectionName = connectionName
+}
+
+// SetDurable implements Consumer.
+func (c *consumer) SetDurable(durable bool) {
+	c.durable = durable
+}
+
+// SetDeleteWhenUnused implements Consumer.
+func (c *consumer) SetDeleteWhenUnused(deleteWhenUnused bool) {
+	c.deleteWhenUnused = deleteWhenUnused
 }
 
 // SetAutoAck implements Consumer.
@@ -53,12 +67,10 @@ func (c *consumer) SetTag(tag string) {
 // Create a new consumer instance
 func NewConsumer(rabbitURL, queueName string) Consumer {
 	return &consumer{
-		url:       rabbitURL,
-		queue:     queueName,
-		autoAck:   true,
-		exclusive: false,
-		noLocal:   false,
-		noWait:    false,
+		url:     rabbitURL,
+		queue:   queueName,
+		durable: true,
+		autoAck: true,
 	}
 }
 
@@ -85,12 +97,12 @@ func (c *consumer) Consume(workerFunc func([]byte)) error {
 	defer ch.Close()
 
 	q, err := ch.QueueDeclare(
-		c.queue, // name
-		true,    // durable
-		false,   // delete when unused
-		false,   // exclusive
-		false,   // no-wait
-		nil,     // arguments
+		c.queue,            // name
+		c.durable,          // durable
+		c.deleteWhenUnused, // delete when unused
+		c.exclusive,        // exclusive
+		c.noWait,           // no-wait
+		nil,                // arguments
 	)
 	if err != nil {
 		return fmt.Errorf("queue Declare: %s", err.Error())
