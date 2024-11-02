@@ -23,6 +23,8 @@ type Publisher interface {
 
 type Consumer interface {
 	SetConnectionName(string)
+	SetDurable(bool)
+	SetDeleteWhenUnused(bool)
 	SetTag(string)
 	SetAutoAck(bool)
 	SetExclusive(bool)
