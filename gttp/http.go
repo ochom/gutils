@@ -42,7 +42,7 @@ func getTimeout(timeout ...time.Duration) time.Duration {
 }
 
 // Post sends a POST request to the specified URL.
-func Post(url string, headers M, body any, timeout ...time.Duration) (res *Response, err error) {
+func Post(url string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(helpers.ToBytes(body)))
 	if err != nil {
 		return
@@ -56,23 +56,23 @@ func Post(url string, headers M, body any, timeout ...time.Duration) (res *Respo
 	ctx, cancel := context.WithTimeout(context.Background(), getTimeout(timeout...))
 	defer cancel()
 
-	reqDo, err := getClient().Do(req.WithContext(ctx))
+	res, err := getClient().Do(req.WithContext(ctx))
 	if err != nil {
 		return
 	}
 
-	defer reqDo.Body.Close()
+	defer res.Body.Close()
 
-	bodyBytes, err := io.ReadAll(reqDo.Body)
+	content, err := io.ReadAll(res.Body)
 	if err != nil {
 		return
 	}
 
-	return &Response{reqDo.StatusCode, bodyBytes}, nil
+	return &Response{res.StatusCode, content}, nil
 }
 
 // Get sends a GET request to the specified URL.
-func Get(url string, headers M, timeout ...time.Duration) (res *Response, err error) {
+func Get(url string, headers M, timeout ...time.Duration) (resp *Response, err error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return
@@ -86,23 +86,23 @@ func Get(url string, headers M, timeout ...time.Duration) (res *Response, err er
 	ctx, cancel := context.WithTimeout(context.Background(), getTimeout(timeout...))
 	defer cancel()
 
-	reqDo, err := getClient().Do(req.WithContext(ctx))
+	res, err := getClient().Do(req.WithContext(ctx))
 	if err != nil {
 		return
 	}
 
-	defer reqDo.Body.Close()
+	defer res.Body.Close()
 
-	bodyBytes, err := io.ReadAll(reqDo.Body)
+	content, err := io.ReadAll(res.Body)
 	if err != nil {
 		return
 	}
 
-	return &Response{reqDo.StatusCode, bodyBytes}, nil
+	return &Response{res.StatusCode, content}, nil
 }
 
 // Custom sends a custom request to the specified URL.
-func Custom(url, method string, headers M, body any, timeout ...time.Duration) (res *Response, err error) {
+func Custom(url, method string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(helpers.ToBytes(body)))
 	if err != nil {
 		return
@@ -116,17 +116,17 @@ func Custom(url, method string, headers M, body any, timeout ...time.Duration) (
 	ctx, cancel := context.WithTimeout(context.Background(), getTimeout(timeout...))
 	defer cancel()
 
-	reqDo, err := getClient().Do(req.WithContext(ctx))
+	res, err := getClient().Do(req.WithContext(ctx))
 	if err != nil {
 		return
 	}
 
-	defer reqDo.Body.Close()
+	defer res.Body.Close()
 
-	bodyBytes, err := io.ReadAll(reqDo.Body)
+	content, err := io.ReadAll(res.Body)
 	if err != nil {
 		return
 	}
 
-	return &Response{reqDo.StatusCode, bodyBytes}, nil
+	return &Response{res.StatusCode, content}, nil
 }
