@@ -49,7 +49,6 @@ func Post(url string, headers M, body any, timeout ...time.Duration) (resp *Resp
 		return
 	}
 
-	req.Close = true
 	for k, v := range headers {
 		req.Header.Set(k, v)
 	}
@@ -79,7 +78,6 @@ func Get(url string, headers M, timeout ...time.Duration) (resp *Response, err e
 		return
 	}
 
-	req.Close = true
 	for k, v := range headers {
 		req.Header.Set(k, v)
 	}
@@ -109,7 +107,6 @@ func Custom(url, method string, headers M, body any, timeout ...time.Duration) (
 		return
 	}
 
-	req.Close = true
 	for k, v := range headers {
 		req.Header.Set(k, v)
 	}
