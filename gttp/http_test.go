@@ -28,7 +28,7 @@ func Test_Post(t *testing.T) {
 				body:    []byte(`{"name": "John Doe", "data":"bytes"}`),
 			},
 			wantRes: &gttp.Response{
-				Status: 200,
+				StatusCode: 200,
 			},
 			wantErr: false,
 		},
@@ -40,7 +40,7 @@ func Test_Post(t *testing.T) {
 				body:    map[string]string{"name": "John Doe", "data": "map"},
 			},
 			wantRes: &gttp.Response{
-				Status: 200,
+				StatusCode: 200,
 			},
 			wantErr: false,
 		},
@@ -53,8 +53,8 @@ func Test_Post(t *testing.T) {
 				return
 			}
 
-			if !reflect.DeepEqual(gotRes.Status, tt.wantRes.Status) {
-				t.Errorf("Post() = %v, want %v", gotRes.Status, tt.wantRes.Status)
+			if !reflect.DeepEqual(gotRes.StatusCode, tt.wantRes.StatusCode) {
+				t.Errorf("Post() = %v, want %v", gotRes.StatusCode, tt.wantRes.StatusCode)
 			}
 		})
 	}

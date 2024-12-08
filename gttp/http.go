@@ -14,7 +14,7 @@ import (
 // Response is the response of the request.
 type Response struct {
 	// Status is the HTTP status code.
-	Status int
+	StatusCode int
 
 	// Body is the response body.
 	Body []byte
@@ -24,6 +24,7 @@ type Response struct {
 func getClient() *http.Client {
 	client := &http.Client{
 		Transport: &http.Transport{
+			DisableKeepAlives: true,
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true,
 			},
