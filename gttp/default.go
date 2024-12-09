@@ -11,17 +11,10 @@ import (
 	"github.com/ochom/gutils/helpers"
 )
 
-// Response is the response of the request.
-type Response struct {
-	// Status is the HTTP status code.
-	StatusCode int
-
-	// Body is the response body.
-	Body []byte
-}
+type defaultClient struct{}
 
 // getClient ...
-func getClient() *http.Client {
+func (*defaultClient) getClient() *http.Client {
 	client := &http.Client{
 		Transport: &http.Transport{
 			DisableKeepAlives: true,
@@ -34,16 +27,8 @@ func getClient() *http.Client {
 	return client
 }
 
-func getTimeout(timeout ...time.Duration) time.Duration {
-	if len(timeout) == 0 {
-		return 10 * time.Second
-	}
-
-	return timeout[0]
-}
-
 // Post sends a POST request to the specified URL.
-func Post(url string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
+func (c *defaultClient) Post(url string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(helpers.ToBytes(body)))
 	if err != nil {
 		return
@@ -56,7 +41,7 @@ func Post(url string, headers M, body any, timeout ...time.Duration) (resp *Resp
 	ctx, cancel := context.WithTimeout(context.Background(), getTimeout(timeout...))
 	defer cancel()
 
-	res, err := getClient().Do(req.WithContext(ctx))
+	res, err := c.getClient().Do(req.WithContext(ctx))
 	if err != nil {
 		return
 	}
@@ -72,7 +57,7 @@ func Post(url string, headers M, body any, timeout ...time.Duration) (resp *Resp
 }
 
 // Get sends a GET request to the specified URL.
-func Get(url string, headers M, timeout ...time.Duration) (resp *Response, err error) {
+func (c *defaultClient) Get(url string, headers M, timeout ...time.Duration) (resp *Response, err error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return
@@ -85,7 +70,7 @@ func Get(url string, headers M, timeout ...time.Duration) (resp *Response, err e
 	ctx, cancel := context.WithTimeout(context.Background(), getTimeout(timeout...))
 	defer cancel()
 
-	res, err := getClient().Do(req.WithContext(ctx))
+	res, err := c.getClient().Do(req.WithContext(ctx))
 	if err != nil {
 		return
 	}
@@ -101,7 +86,7 @@ func Get(url string, headers M, timeout ...time.Duration) (resp *Response, err e
 }
 
 // Custom sends a custom request to the specified URL.
-func Custom(url, method string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
+func (c *defaultClient) Custom(url, method string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(helpers.ToBytes(body)))
 	if err != nil {
 		return
@@ -114,7 +99,7 @@ func Custom(url, method string, headers M, body any, timeout ...time.Duration) (
 	ctx, cancel := context.WithTimeout(context.Background(), getTimeout(timeout...))
 	defer cancel()
 
-	res, err := getClient().Do(req.WithContext(ctx))
+	res, err := c.getClient().Do(req.WithContext(ctx))
 	if err != nil {
 		return
 	}
