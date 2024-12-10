@@ -9,55 +9,22 @@ import (
 	"github.com/ochom/gutils/logs"
 )
 
-type fiberClient struct {
-}
+type fiberClient struct{}
 
-// Post sends a POST request to the specified URL.
-func (c *fiberClient) Post(url string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
-	client := fiber.AcquireClient()
-	req := client.Post(url)
-	req.InsecureSkipVerify()
-
-	for k, v := range headers {
-		req.Add(k, v)
-	}
-
-	req.Body(helpers.ToBytes(body))
-	code, content, errs := req.Bytes()
-	if len(errs) > 0 {
-		for _, er := range errs {
-			logs.Error("client error: %s", er.Error())
-		}
-
-		return nil, errs[0]
-	}
-
-	return &Response{code, content}, nil
-}
-
-// Get sends a GET request to the specified URL.
-func (c *fiberClient) Get(url string, headers M, timeout ...time.Duration) (resp *Response, err error) {
-	client := fiber.AcquireClient()
-	req := client.Get(url)
-	req.InsecureSkipVerify()
-
-	for k, v := range headers {
-		req.Add(k, v)
-	}
-
+func do(req *fiber.Agent) (int, []byte, error) {
 	code, content, errs := req.Bytes()
 	if len(errs) > 0 {
 		for _, err := range errs {
 			logs.Error("client error: %s", err.Error())
 		}
-		return nil, errs[0]
+
+		return 0, nil, errs[0]
 	}
 
-	return &Response{code, content}, nil
+	return code, content, nil
 }
 
-// Custom sends a custom request to the specified URL.
-func (c *fiberClient) Custom(url, method string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
+func getClient(url, method string) *fiber.Agent {
 	client := fiber.AcquireClient()
 	var req *fiber.Agent
 	switch method {
@@ -72,24 +39,54 @@ func (c *fiberClient) Custom(url, method string, headers M, body any, timeout ..
 	case "PATCH":
 		req = client.Patch(url)
 	default:
-		logs.Error("Unknown method: %s", method)
-		return nil, fmt.Errorf("unknown method: %s", method)
+		panic(fmt.Errorf("unknown method: %s", method))
 	}
 
 	req.InsecureSkipVerify()
+	return req
+}
 
+// Post sends a POST request to the specified URL.
+func (c *fiberClient) Post(url string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
+	req := getClient(url, "POST")
 	for k, v := range headers {
 		req.Add(k, v)
 	}
 
 	req.Body(helpers.ToBytes(body))
-	code, content, errs := req.Bytes()
-	if len(errs) > 0 {
-		for _, err := range errs {
-			logs.Error("client error: %s", err.Error())
-		}
+	code, content, err := do(req)
+	if err != nil {
+		return nil, err
+	}
+	return &Response{code, content}, nil
+}
 
-		return nil, errs[0]
+// Get sends a GET request to the specified URL.
+func (c *fiberClient) Get(url string, headers M, timeout ...time.Duration) (resp *Response, err error) {
+	req := getClient(url, "GET")
+	for k, v := range headers {
+		req.Add(k, v)
+	}
+
+	code, content, err := do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Response{code, content}, nil
+}
+
+// Custom sends a custom request to the specified URL.
+func (c *fiberClient) Custom(url, method string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
+	req := getClient(url, method)
+	for k, v := range headers {
+		req.Add(k, v)
+	}
+
+	req.Body(helpers.ToBytes(body))
+	code, content, err := do(req)
+	if err != nil {
+		return nil, err
 	}
 
 	return &Response{code, content}, nil
