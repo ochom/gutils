@@ -72,16 +72,23 @@ func (c *fiberClient) Custom(url, method string, headers M, body any, timeouts .
 }
 
 func (fiberClient) do(ctx context.Context, req *fiber.Agent) (int, []byte, error) {
-	code, content, errs := req.Bytes()
-	if len(errs) > 0 {
-		for _, err := range errs {
-			logs.Error("client error: %s", err.Error())
+	for {
+		select {
+		case <-ctx.Done():
+			return 500, nil, ctx.Err()
+		default:
+			code, content, errs := req.Bytes()
+			if len(errs) > 0 {
+				for _, err := range errs {
+					logs.Error("client error: %s", err.Error())
+				}
+
+				return 500, nil, errs[0]
+			}
+
+			return code, content, nil
 		}
-
-		return 0, nil, errs[0]
 	}
-
-	return code, content, nil
 }
 
 func (fiberClient) getClient(url, method string) *fiber.Agent {
