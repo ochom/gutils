@@ -14,50 +14,16 @@ type fiberClient struct{}
 
 // Post sends a POST request to the specified URL.
 func (c *fiberClient) Post(url string, headers M, body any, timeouts ...time.Duration) (resp *Response, err error) {
-	req := c.getClient(url, "POST")
-	for k, v := range headers {
-		req.Add(k, v)
-	}
-
-	timeout := time.Hour
-	if len(timeouts) > 0 {
-		timeout = timeouts[0]
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	req.Body(helpers.ToBytes(body))
-	code, content, err := c.do(ctx, req)
-	return &Response{code, content}, err
+	return c.Custom(url, "POST", headers, body, timeouts...)
 }
 
 // Get sends a GET request to the specified URL.
 func (c *fiberClient) Get(url string, headers M, timeouts ...time.Duration) (resp *Response, err error) {
-	req := c.getClient(url, "GET")
-	for k, v := range headers {
-		req.Add(k, v)
-	}
-
-	timeout := time.Hour
-	if len(timeouts) > 0 {
-		timeout = timeouts[0]
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	code, content, err := c.do(ctx, req)
-	return &Response{code, content}, err
+	return c.Custom(url, "GET", headers, nil, timeouts...)
 }
 
 // Custom sends a custom request to the specified URL.
 func (c *fiberClient) Custom(url, method string, headers M, body any, timeouts ...time.Duration) (resp *Response, err error) {
-	req := c.getClient(url, method)
-	for k, v := range headers {
-		req.Add(k, v)
-	}
-
 	timeout := time.Hour
 	if len(timeouts) > 0 {
 		timeout = timeouts[0]
@@ -66,34 +32,46 @@ func (c *fiberClient) Custom(url, method string, headers M, body any, timeouts .
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	req.Body(helpers.ToBytes(body))
-	code, content, err := c.do(ctx, req)
-	return &Response{code, content}, err
-}
-
-func (fiberClient) do(ctx context.Context, req *fiber.Agent) (int, []byte, error) {
 	for {
 		select {
 		case <-ctx.Done():
-			return 500, nil, ctx.Err()
+			return &Response{500, nil}, ctx.Err()
 		default:
-			code, content, errs := req.Bytes()
-			if len(errs) > 0 {
-				for _, err := range errs {
-					logs.Error("client error: %s", err.Error())
-				}
-
-				return 500, nil, errs[0]
-			}
-
-			return code, content, nil
+			return c.sendRequest(url, method, headers, body)
 		}
 	}
 }
 
-func (fiberClient) getClient(url, method string) *fiber.Agent {
+func (c *fiberClient) sendRequest(url, method string, headers M, body any) (resp *Response, err error) {
+	req, err := c.getClient(url, method)
+	if err != nil {
+		return nil, err
+	}
+
+	for k, v := range headers {
+		req.Add(k, v)
+	}
+
+	if method != "GET" {
+		req.Body(helpers.ToBytes(body))
+	}
+
+	code, content, errs := req.Bytes()
+	if len(errs) > 0 {
+		for _, err := range errs {
+			logs.Error("client error: %s", err.Error())
+		}
+
+		return &Response{500, content}, errs[0]
+	}
+
+	return &Response{code, content}, err
+}
+
+func (fiberClient) getClient(url, method string) (*fiber.Agent, error) {
 	client := fiber.AcquireClient()
 	var req *fiber.Agent
+
 	switch method {
 	case "POST":
 		req = client.Post(url)
@@ -110,5 +88,5 @@ func (fiberClient) getClient(url, method string) *fiber.Agent {
 	}
 
 	req.InsecureSkipVerify()
-	return req
+	return req, nil
 }
