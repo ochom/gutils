@@ -27,17 +27,9 @@ func (c *fiberClient) Post(url string, headers M, body any, timeouts ...time.Dur
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	for {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-			req.Body(helpers.ToBytes(body))
-			code, content, err := c.do(req)
-			return &Response{code, content}, err
-		}
-	}
-
+	req.Body(helpers.ToBytes(body))
+	code, content, err := c.do(ctx, req)
+	return &Response{code, content}, err
 }
 
 // Get sends a GET request to the specified URL.
@@ -55,16 +47,8 @@ func (c *fiberClient) Get(url string, headers M, timeouts ...time.Duration) (res
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	for {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-			code, content, err := c.do(req)
-			return &Response{code, content}, err
-		}
-	}
-
+	code, content, err := c.do(ctx, req)
+	return &Response{code, content}, err
 }
 
 // Custom sends a custom request to the specified URL.
@@ -82,19 +66,12 @@ func (c *fiberClient) Custom(url, method string, headers M, body any, timeouts .
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	for {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-			req.Body(helpers.ToBytes(body))
-			code, content, err := c.do(req)
-			return &Response{code, content}, err
-		}
-	}
+	req.Body(helpers.ToBytes(body))
+	code, content, err := c.do(ctx, req)
+	return &Response{code, content}, err
 }
 
-func (fiberClient) do(req *fiber.Agent) (int, []byte, error) {
+func (fiberClient) do(ctx context.Context, req *fiber.Agent) (int, []byte, error) {
 	code, content, errs := req.Bytes()
 	if len(errs) > 0 {
 		for _, err := range errs {
