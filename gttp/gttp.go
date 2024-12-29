@@ -3,7 +3,7 @@ package gttp
 import (
 	"time"
 
-	"github.com/ochom/gutils/logs"
+	"github.com/ochom/gutils/env"
 )
 
 type ClientType int
@@ -14,19 +14,35 @@ const (
 )
 
 type Client interface {
-	Post(url string, headers M, body any, timeout ...time.Duration) (resp *Response, err error)
-	Get(url string, headers M, timeout ...time.Duration) (resp *Response, err error)
-	SendRequest(url, method string, headers M, body any, timeout ...time.Duration) (resp *Response, err error)
+	post(url string, headers M, body any, timeout ...time.Duration) (resp *Response, err error)
+	get(url string, headers M, timeout ...time.Duration) (resp *Response, err error)
+	sendRequest(url, method string, headers M, body any, timeout ...time.Duration) (resp *Response, err error)
 }
 
-func NewClient(clientType ClientType) Client {
-	switch clientType {
+var client Client
+
+func init() {
+	switch env.Int("HTTP_CLIENT", 1) {
 	case DefaultHttp:
-		return &defaultClient{}
+		client = new(defaultClient)
 	case GoFiber:
-		return &fiberClient{}
+		client = new(fiberClient)
 	default:
-		logs.Error("Unknown provider: %d", clientType)
-		return nil
+		panic("unknown http client")
 	}
+}
+
+// Post sends a POST request to the specified URL.
+func Post(url string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
+	return client.post(url, headers, body, timeout...)
+}
+
+// Get sends a GET request to the specified URL.
+func Get(url string, headers M, timeout ...time.Duration) (resp *Response, err error) {
+	return client.get(url, headers, timeout...)
+}
+
+// SendRequest sends a request to the specified URL.
+func SendRequest(url, method string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
+	return client.sendRequest(url, method, headers, body, timeout...)
 }

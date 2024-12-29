@@ -12,18 +12,18 @@ import (
 
 type fiberClient struct{}
 
-// Post sends a POST request to the specified URL.
-func (c *fiberClient) Post(url string, headers M, body any, timeouts ...time.Duration) (resp *Response, err error) {
-	return c.SendRequest(url, "POST", headers, body, timeouts...)
+// post sends a POST request to the specified URL.
+func (c *fiberClient) post(url string, headers M, body any, timeouts ...time.Duration) (resp *Response, err error) {
+	return c.sendRequest(url, "POST", headers, body, timeouts...)
 }
 
-// Get sends a GET request to the specified URL.
-func (c *fiberClient) Get(url string, headers M, timeouts ...time.Duration) (resp *Response, err error) {
-	return c.SendRequest(url, "GET", headers, nil, timeouts...)
+// get sends a GET request to the specified URL.
+func (c *fiberClient) get(url string, headers M, timeouts ...time.Duration) (resp *Response, err error) {
+	return c.sendRequest(url, "GET", headers, nil, timeouts...)
 }
 
-// SendRequest sends a request to the specified URL.
-func (c *fiberClient) SendRequest(url, method string, headers M, body any, timeouts ...time.Duration) (resp *Response, err error) {
+// sendRequest sends a request to the specified URL.
+func (c *fiberClient) sendRequest(url, method string, headers M, body any, timeouts ...time.Duration) (resp *Response, err error) {
 	timeout := time.Hour
 	if len(timeouts) > 0 {
 		timeout = timeouts[0]
@@ -37,12 +37,13 @@ func (c *fiberClient) SendRequest(url, method string, headers M, body any, timeo
 		case <-ctx.Done():
 			return &Response{500, nil}, ctx.Err()
 		default:
-			return c.sendRequest(url, method, headers, body)
+			return c.makeRequest(url, method, headers, body)
 		}
 	}
 }
 
-func (c *fiberClient) sendRequest(url, method string, headers M, body any) (resp *Response, err error) {
+// makeRequest sends a request to the specified URL.
+func (c *fiberClient) makeRequest(url, method string, headers M, body any) (resp *Response, err error) {
 	client := fiber.AcquireClient()
 	var req *fiber.Agent
 

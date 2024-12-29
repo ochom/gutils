@@ -27,18 +27,18 @@ func (*defaultClient) getClient() *http.Client {
 	return client
 }
 
-// Post sends a POST request to the specified URL.
-func (c *defaultClient) Post(url string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
-	return c.SendRequest(url, "POST", headers, body, timeout...)
+// post sends a POST request to the specified URL.
+func (c *defaultClient) post(url string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
+	return c.sendRequest(url, "POST", headers, body, timeout...)
 }
 
-// Get sends a GET request to the specified URL.
-func (c *defaultClient) Get(url string, headers M, timeout ...time.Duration) (resp *Response, err error) {
-	return c.SendRequest(url, "GET", headers, nil, timeout...)
+// get sends a GET request to the specified URL.
+func (c *defaultClient) get(url string, headers M, timeout ...time.Duration) (resp *Response, err error) {
+	return c.sendRequest(url, "GET", headers, nil, timeout...)
 }
 
-// SendRequest sends a  request to the specified URL.
-func (c *defaultClient) SendRequest(url, method string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
+// sendRequest sends a  request to the specified URL.
+func (c *defaultClient) sendRequest(url, method string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(helpers.ToBytes(body)))
 	if err != nil {
 		return

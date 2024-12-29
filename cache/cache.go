@@ -1,7 +1,6 @@
 package cache
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/ochom/gutils/env"
@@ -49,13 +48,12 @@ func SetWithExpiry[T any](key string, value T, expiry time.Duration) error {
 }
 
 // Get ...
-func Get[T any](key string) (T, error) {
-	v := conn.get(key)
-	if v == nil {
-		return *new(T), fmt.Errorf("key %s not found", key)
+func Get[T any](key string) T {
+	if v := conn.get(key); v != nil {
+		return helpers.FromBytes[T](v)
 	}
 
-	return helpers.FromBytes[T](v), nil
+	return *new(T)
 }
 
 // Delete ...
