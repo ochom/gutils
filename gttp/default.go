@@ -29,64 +29,16 @@ func (*defaultClient) getClient() *http.Client {
 
 // Post sends a POST request to the specified URL.
 func (c *defaultClient) Post(url string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(helpers.ToBytes(body)))
-	if err != nil {
-		return
-	}
-
-	for k, v := range headers {
-		req.Header.Set(k, v)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), getTimeout(timeout...))
-	defer cancel()
-
-	res, err := c.getClient().Do(req.WithContext(ctx))
-	if err != nil {
-		return
-	}
-
-	defer res.Body.Close()
-
-	content, err := io.ReadAll(res.Body)
-	if err != nil {
-		return
-	}
-
-	return &Response{res.StatusCode, content}, nil
+	return c.SendRequest(url, "POST", headers, body, timeout...)
 }
 
 // Get sends a GET request to the specified URL.
 func (c *defaultClient) Get(url string, headers M, timeout ...time.Duration) (resp *Response, err error) {
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return
-	}
-
-	for k, v := range headers {
-		req.Header.Set(k, v)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), getTimeout(timeout...))
-	defer cancel()
-
-	res, err := c.getClient().Do(req.WithContext(ctx))
-	if err != nil {
-		return
-	}
-
-	defer res.Body.Close()
-
-	content, err := io.ReadAll(res.Body)
-	if err != nil {
-		return
-	}
-
-	return &Response{res.StatusCode, content}, nil
+	return c.SendRequest(url, "GET", headers, nil, timeout...)
 }
 
-// Custom sends a custom request to the specified URL.
-func (c *defaultClient) Custom(url, method string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
+// SendRequest sends a  request to the specified URL.
+func (c *defaultClient) SendRequest(url, method string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(helpers.ToBytes(body)))
 	if err != nil {
 		return

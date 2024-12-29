@@ -16,7 +16,7 @@ const (
 type Client interface {
 	Post(url string, headers M, body any, timeout ...time.Duration) (resp *Response, err error)
 	Get(url string, headers M, timeout ...time.Duration) (resp *Response, err error)
-	Custom(url, method string, headers M, body any, timeout ...time.Duration) (resp *Response, err error)
+	SendRequest(url, method string, headers M, body any, timeout ...time.Duration) (resp *Response, err error)
 }
 
 func NewClient(clientType ClientType) Client {

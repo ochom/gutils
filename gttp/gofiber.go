@@ -14,16 +14,16 @@ type fiberClient struct{}
 
 // Post sends a POST request to the specified URL.
 func (c *fiberClient) Post(url string, headers M, body any, timeouts ...time.Duration) (resp *Response, err error) {
-	return c.Custom(url, "POST", headers, body, timeouts...)
+	return c.SendRequest(url, "POST", headers, body, timeouts...)
 }
 
 // Get sends a GET request to the specified URL.
 func (c *fiberClient) Get(url string, headers M, timeouts ...time.Duration) (resp *Response, err error) {
-	return c.Custom(url, "GET", headers, nil, timeouts...)
+	return c.SendRequest(url, "GET", headers, nil, timeouts...)
 }
 
-// Custom sends a custom request to the specified URL.
-func (c *fiberClient) Custom(url, method string, headers M, body any, timeouts ...time.Duration) (resp *Response, err error) {
+// SendRequest sends a request to the specified URL.
+func (c *fiberClient) SendRequest(url, method string, headers M, body any, timeouts ...time.Duration) (resp *Response, err error) {
 	timeout := time.Hour
 	if len(timeouts) > 0 {
 		timeout = timeouts[0]
@@ -43,10 +43,26 @@ func (c *fiberClient) Custom(url, method string, headers M, body any, timeouts .
 }
 
 func (c *fiberClient) sendRequest(url, method string, headers M, body any) (resp *Response, err error) {
-	req, err := c.getClient(url, method)
-	if err != nil {
-		return nil, err
+	client := fiber.AcquireClient()
+	var req *fiber.Agent
+
+	switch method {
+	case "POST":
+		req = client.Post(url)
+	case "GET":
+		req = client.Get(url)
+	case "DELETE":
+		req = client.Delete(url)
+	case "PUT":
+		req = client.Put(url)
+	case "PATCH":
+		req = client.Patch(url)
+	default:
+		return &Response{500, nil}, fmt.Errorf("unknown method: %s", method)
 	}
+
+	// skip ssl verification
+	req.InsecureSkipVerify()
 
 	for k, v := range headers {
 		req.Add(k, v)
@@ -66,27 +82,4 @@ func (c *fiberClient) sendRequest(url, method string, headers M, body any) (resp
 	}
 
 	return &Response{code, content}, err
-}
-
-func (fiberClient) getClient(url, method string) (*fiber.Agent, error) {
-	client := fiber.AcquireClient()
-	var req *fiber.Agent
-
-	switch method {
-	case "POST":
-		req = client.Post(url)
-	case "GET":
-		req = client.Get(url)
-	case "DELETE":
-		req = client.Delete(url)
-	case "PUT":
-		req = client.Put(url)
-	case "PATCH":
-		req = client.Patch(url)
-	default:
-		panic(fmt.Errorf("unknown method: %s", method))
-	}
-
-	req.InsecureSkipVerify()
-	return req, nil
 }
