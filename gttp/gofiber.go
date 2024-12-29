@@ -12,7 +12,89 @@ import (
 
 type fiberClient struct{}
 
-func do(req *fiber.Agent) (int, []byte, error) {
+// Post sends a POST request to the specified URL.
+func (c *fiberClient) Post(url string, headers M, body any, timeouts ...time.Duration) (resp *Response, err error) {
+	req := c.getClient(url, "POST")
+	for k, v := range headers {
+		req.Add(k, v)
+	}
+
+	timeout := time.Hour
+	if len(timeouts) > 0 {
+		timeout = timeouts[0]
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+			req.Body(helpers.ToBytes(body))
+			code, content, err := c.do(req)
+			return &Response{code, content}, err
+		}
+	}
+
+}
+
+// Get sends a GET request to the specified URL.
+func (c *fiberClient) Get(url string, headers M, timeouts ...time.Duration) (resp *Response, err error) {
+	req := c.getClient(url, "GET")
+	for k, v := range headers {
+		req.Add(k, v)
+	}
+
+	timeout := time.Hour
+	if len(timeouts) > 0 {
+		timeout = timeouts[0]
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+			code, content, err := c.do(req)
+			return &Response{code, content}, err
+		}
+	}
+
+}
+
+// Custom sends a custom request to the specified URL.
+func (c *fiberClient) Custom(url, method string, headers M, body any, timeouts ...time.Duration) (resp *Response, err error) {
+	req := c.getClient(url, method)
+	for k, v := range headers {
+		req.Add(k, v)
+	}
+
+	timeout := time.Hour
+	if len(timeouts) > 0 {
+		timeout = timeouts[0]
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+			req.Body(helpers.ToBytes(body))
+			code, content, err := c.do(req)
+			return &Response{code, content}, err
+		}
+	}
+}
+
+func (fiberClient) do(req *fiber.Agent) (int, []byte, error) {
 	code, content, errs := req.Bytes()
 	if len(errs) > 0 {
 		for _, err := range errs {
@@ -25,7 +107,7 @@ func do(req *fiber.Agent) (int, []byte, error) {
 	return code, content, nil
 }
 
-func getClient(url, method string) *fiber.Agent {
+func (fiberClient) getClient(url, method string) *fiber.Agent {
 	client := fiber.AcquireClient()
 	var req *fiber.Agent
 	switch method {
@@ -45,86 +127,4 @@ func getClient(url, method string) *fiber.Agent {
 
 	req.InsecureSkipVerify()
 	return req
-}
-
-// Post sends a POST request to the specified URL.
-func (c *fiberClient) Post(url string, headers M, body any, timeouts ...time.Duration) (resp *Response, err error) {
-	req := getClient(url, "POST")
-	for k, v := range headers {
-		req.Add(k, v)
-	}
-
-	timeout := time.Hour
-	if len(timeouts) > 0 {
-		timeout = timeouts[0]
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-			req.Body(helpers.ToBytes(body))
-			code, content, err := do(req)
-			return &Response{code, content}, err
-		}
-	}
-
-}
-
-// Get sends a GET request to the specified URL.
-func (c *fiberClient) Get(url string, headers M, timeouts ...time.Duration) (resp *Response, err error) {
-	req := getClient(url, "GET")
-	for k, v := range headers {
-		req.Add(k, v)
-	}
-
-	timeout := time.Hour
-	if len(timeouts) > 0 {
-		timeout = timeouts[0]
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-			code, content, err := do(req)
-			return &Response{code, content}, err
-		}
-	}
-
-}
-
-// Custom sends a custom request to the specified URL.
-func (c *fiberClient) Custom(url, method string, headers M, body any, timeouts ...time.Duration) (resp *Response, err error) {
-	req := getClient(url, method)
-	for k, v := range headers {
-		req.Add(k, v)
-	}
-
-	timeout := time.Hour
-	if len(timeouts) > 0 {
-		timeout = timeouts[0]
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-			req.Body(helpers.ToBytes(body))
-			code, content, err := do(req)
-			return &Response{code, content}, err
-		}
-	}
 }
