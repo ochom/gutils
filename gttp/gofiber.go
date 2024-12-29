@@ -1,6 +1,7 @@
 package gttp
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -47,47 +48,83 @@ func getClient(url, method string) *fiber.Agent {
 }
 
 // Post sends a POST request to the specified URL.
-func (c *fiberClient) Post(url string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
+func (c *fiberClient) Post(url string, headers M, body any, timeouts ...time.Duration) (resp *Response, err error) {
 	req := getClient(url, "POST")
 	for k, v := range headers {
 		req.Add(k, v)
 	}
 
-	req.Body(helpers.ToBytes(body))
-	code, content, err := do(req)
-	if err != nil {
-		return nil, err
+	timeout := time.Hour
+	if len(timeouts) > 0 {
+		timeout = timeouts[0]
 	}
-	return &Response{code, content}, nil
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+			req.Body(helpers.ToBytes(body))
+			code, content, err := do(req)
+			return &Response{code, content}, err
+		}
+	}
+
 }
 
 // Get sends a GET request to the specified URL.
-func (c *fiberClient) Get(url string, headers M, timeout ...time.Duration) (resp *Response, err error) {
+func (c *fiberClient) Get(url string, headers M, timeouts ...time.Duration) (resp *Response, err error) {
 	req := getClient(url, "GET")
 	for k, v := range headers {
 		req.Add(k, v)
 	}
 
-	code, content, err := do(req)
-	if err != nil {
-		return nil, err
+	timeout := time.Hour
+	if len(timeouts) > 0 {
+		timeout = timeouts[0]
 	}
 
-	return &Response{code, content}, nil
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+			code, content, err := do(req)
+			return &Response{code, content}, err
+		}
+	}
+
 }
 
 // Custom sends a custom request to the specified URL.
-func (c *fiberClient) Custom(url, method string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
+func (c *fiberClient) Custom(url, method string, headers M, body any, timeouts ...time.Duration) (resp *Response, err error) {
 	req := getClient(url, method)
 	for k, v := range headers {
 		req.Add(k, v)
 	}
 
-	req.Body(helpers.ToBytes(body))
-	code, content, err := do(req)
-	if err != nil {
-		return nil, err
+	timeout := time.Hour
+	if len(timeouts) > 0 {
+		timeout = timeouts[0]
 	}
 
-	return &Response{code, content}, nil
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+			req.Body(helpers.ToBytes(body))
+			code, content, err := do(req)
+			return &Response{code, content}, err
+		}
+	}
 }
