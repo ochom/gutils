@@ -38,25 +38,21 @@ func Client() *redis.Client {
 }
 
 // Set ...
-func Set[T any](key string, value T) error {
-	return conn.set(key, helpers.ToBytes(value))
+func Set(key string, value []byte) error {
+	return conn.set(key, value)
 }
 
 // SetWithExpiry ...
-func SetWithExpiry[T any](key string, value T, expiry time.Duration) error {
+func SetWithExpiry(key string, value []byte, expiry time.Duration) error {
 	return conn.setWithExpiry(key, helpers.ToBytes(value), expiry)
 }
 
-// Get ...
-func Get[T any](key string) T {
-	if v := conn.get(key); v != nil {
-		return helpers.FromBytes[T](v)
-	}
-
-	return *new(T)
+// Get returns the value for the given key.
+func Get(key string) []byte {
+	return conn.get(key)
 }
 
-// Delete ...
+// Delete removes the value for the given key.
 func Delete(key string) error {
 	return conn.delete(key)
 }
