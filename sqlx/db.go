@@ -1,4 +1,4 @@
-package sql
+package sqlx
 
 import (
 	"time"
@@ -18,12 +18,13 @@ func Conn() *gorm.DB { return db }
 
 // defaultConfig ...
 var defaultConfig = Config{
-	Driver:       Sqlite,
-	Url:          "gorm.db",
-	LogLevel:     logger.Silent,
-	MaxIdleConns: 10,
-	MaxOpenConns: 100,
-	ConnLifeTime: time.Hour,
+	Driver:                 Sqlite,
+	Url:                    "gorm.db",
+	LogLevel:               logger.Silent,
+	MaxIdleConns:           10,
+	MaxOpenConns:           100,
+	ConnLifeTime:           time.Hour,
+	SkipDefaultTransaction: true,
 }
 
 // New initializes the database db with GORM
@@ -100,7 +101,9 @@ func createPgInstance(config *Config) (*gorm.DB, error) {
 
 func createMysqlInstance(config *Config) (*gorm.DB, error) {
 	conn, err := gorm.Open(mysql.Open(config.Url), &gorm.Config{
-		Logger: logger.Default.LogMode(config.LogLevel),
+		Logger:                 logger.Default.LogMode(config.LogLevel),
+		SkipDefaultTransaction: config.SkipDefaultTransaction,
+		PrepareStmt:            true,
 	})
 
 	if err != nil {
@@ -129,14 +132,14 @@ func createSqliteInstance(config *Config) (*gorm.DB, error) {
 }
 
 func createPool(conn *gorm.DB, config *Config) (*gorm.DB, error) {
-	sqlDB, err := conn.DB()
+	_db, err := conn.DB()
 	if err != nil {
 		return conn, err
 	}
 
-	sqlDB.SetMaxIdleConns(config.MaxIdleConns)
-	sqlDB.SetMaxOpenConns(config.MaxOpenConns)
-	sqlDB.SetConnMaxLifetime(config.ConnLifeTime)
+	_db.SetMaxIdleConns(config.MaxIdleConns)
+	_db.SetMaxOpenConns(config.MaxOpenConns)
+	_db.SetConnMaxLifetime(config.ConnLifeTime)
 
 	return conn, nil
 }
