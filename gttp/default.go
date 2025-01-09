@@ -7,8 +7,6 @@ import (
 	"io"
 	"net/http"
 	"time"
-
-	"github.com/ochom/gutils/helpers"
 )
 
 type defaultClient struct{}
@@ -28,7 +26,7 @@ func (*defaultClient) getClient() *http.Client {
 }
 
 // post sends a POST request to the specified URL.
-func (c *defaultClient) post(url string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
+func (c *defaultClient) post(url string, headers M, body []byte, timeout ...time.Duration) (resp *Response, err error) {
 	return c.sendRequest(url, "POST", headers, body, timeout...)
 }
 
@@ -38,8 +36,8 @@ func (c *defaultClient) get(url string, headers M, timeout ...time.Duration) (re
 }
 
 // sendRequest sends a  request to the specified URL.
-func (c *defaultClient) sendRequest(url, method string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
-	req, err := http.NewRequest(method, url, bytes.NewBuffer(helpers.ToBytes(body)))
+func (c *defaultClient) sendRequest(url, method string, headers M, body []byte, timeout ...time.Duration) (resp *Response, err error) {
+	req, err := http.NewRequest(method, url, bytes.NewBuffer(body))
 	if err != nil {
 		return
 	}

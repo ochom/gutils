@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/ochom/gutils/env"
-	"github.com/ochom/gutils/helpers"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -44,7 +43,7 @@ func Set(key string, value []byte) error {
 
 // SetWithExpiry ...
 func SetWithExpiry(key string, value []byte, expiry time.Duration) error {
-	return conn.setWithExpiry(key, helpers.ToBytes(value), expiry)
+	return conn.setWithExpiry(key, value, expiry)
 }
 
 // Get returns the value for the given key.

@@ -14,9 +14,9 @@ const (
 )
 
 type Client interface {
-	post(url string, headers M, body any, timeout ...time.Duration) (resp *Response, err error)
+	post(url string, headers M, body []byte, timeout ...time.Duration) (resp *Response, err error)
 	get(url string, headers M, timeout ...time.Duration) (resp *Response, err error)
-	sendRequest(url, method string, headers M, body any, timeout ...time.Duration) (resp *Response, err error)
+	sendRequest(url, method string, headers M, body []byte, timeout ...time.Duration) (resp *Response, err error)
 }
 
 var client Client
@@ -33,7 +33,7 @@ func init() {
 }
 
 // Post sends a POST request to the specified URL.
-func Post(url string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
+func Post(url string, headers M, body []byte, timeout ...time.Duration) (resp *Response, err error) {
 	return client.post(url, headers, body, timeout...)
 }
 
@@ -43,6 +43,6 @@ func Get(url string, headers M, timeout ...time.Duration) (resp *Response, err e
 }
 
 // SendRequest sends a request to the specified URL.
-func SendRequest(url, method string, headers M, body any, timeout ...time.Duration) (resp *Response, err error) {
+func SendRequest(url, method string, headers M, body []byte, timeout ...time.Duration) (resp *Response, err error) {
 	return client.sendRequest(url, method, headers, body, timeout...)
 }

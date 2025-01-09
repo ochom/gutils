@@ -6,23 +6,16 @@ import (
 	"github.com/ochom/gutils/logs"
 )
 
+// Marshallable ...
+type Marshallable interface {
+	map[string]any | map[string]string |
+		[]map[string]any | []map[string]string |
+		struct{} | *struct{} |
+		[]struct{} | []*struct{}
+}
+
 // ToBytes converts provided interface to slice of bytes
-func ToBytes(payload any) []byte {
-	if payload == nil {
-		return nil
-	}
-
-	// Check if the payload is already of type []byte.
-	if bytesPayload, ok := payload.([]byte); ok {
-		return bytesPayload
-	}
-
-	// Check if the payload is already of type string.
-	if stringPayload, ok := payload.(string); ok {
-		return []byte(stringPayload)
-	}
-
-	// Marshal the payload to JSON.
+func ToBytes[T Marshallable](payload T) []byte {
 	bytesPayload, err := json.Marshal(&payload)
 	if err != nil {
 		logs.Error("Failed to marshal JSON: %s", err.Error())
@@ -33,17 +26,11 @@ func ToBytes(payload any) []byte {
 }
 
 // FromBytes converts slice of bytes to provided interface
-func FromBytes[T any](payload []byte) T {
+func FromBytes[T Marshallable](payload []byte) (T, error) {
 	var data T
-	if payload == nil {
-		return data
+	if err := json.Unmarshal(payload, &data); err != nil {
+		return data, err
 	}
 
-	err := json.Unmarshal(payload, &data)
-	if err != nil {
-		logs.Error("Failed to unmarshal JSON: %s", err.Error())
-		return data
-	}
-
-	return data
+	return data, nil
 }

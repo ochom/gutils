@@ -6,14 +6,13 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/ochom/gutils/helpers"
 	"github.com/ochom/gutils/logs"
 )
 
 type fiberClient struct{}
 
 // post sends a POST request to the specified URL.
-func (c *fiberClient) post(url string, headers M, body any, timeouts ...time.Duration) (resp *Response, err error) {
+func (c *fiberClient) post(url string, headers M, body []byte, timeouts ...time.Duration) (resp *Response, err error) {
 	return c.sendRequest(url, "POST", headers, body, timeouts...)
 }
 
@@ -23,7 +22,7 @@ func (c *fiberClient) get(url string, headers M, timeouts ...time.Duration) (res
 }
 
 // sendRequest sends a request to the specified URL.
-func (c *fiberClient) sendRequest(url, method string, headers M, body any, timeouts ...time.Duration) (resp *Response, err error) {
+func (c *fiberClient) sendRequest(url, method string, headers M, body []byte, timeouts ...time.Duration) (resp *Response, err error) {
 	timeout := time.Hour
 	if len(timeouts) > 0 {
 		timeout = timeouts[0]
@@ -43,7 +42,7 @@ func (c *fiberClient) sendRequest(url, method string, headers M, body any, timeo
 }
 
 // makeRequest sends a request to the specified URL.
-func (c *fiberClient) makeRequest(url, method string, headers M, body any) (resp *Response, err error) {
+func (c *fiberClient) makeRequest(url, method string, headers M, body []byte) (resp *Response, err error) {
 	client := fiber.AcquireClient()
 	var req *fiber.Agent
 
@@ -69,8 +68,8 @@ func (c *fiberClient) makeRequest(url, method string, headers M, body any) (resp
 		req.Add(k, v)
 	}
 
-	if method != "GET" {
-		req.Body(helpers.ToBytes(body))
+	if method == "POST" || method == "PUT" || method == "PATCH" {
+		req.Body(body)
 	}
 
 	code, content, errs := req.Bytes()
