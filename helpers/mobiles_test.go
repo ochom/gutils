@@ -43,6 +43,13 @@ func TestParseMobile(t *testing.T) {
 			},
 			want: "",
 		},
+		{
+			name: "test 5",
+			args: args{
+				mobile: "254212345678",
+			},
+			want: "",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
