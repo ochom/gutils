@@ -1,8 +1,14 @@
 package helpers
 
-import "strings"
+import (
+	"crypto/sha256"
+	"fmt"
+	"strings"
 
-// ParseMobile ...
+	"github.com/ochom/gutils/logs"
+)
+
+// ParseMobile  parses phone number to 254 format
 func ParseMobile(mobile string) string {
 	// replace all non-digit characters
 	mobile = strings.Map(func(r rune) rune {
@@ -29,4 +35,15 @@ func ParseMobile(mobile string) string {
 	}
 
 	return "254" + mobile
+}
+
+// HashPhone hashes phone number to sha256 hash
+func HashPhone(phone string) string {
+	h := sha256.New()
+	_, err := h.Write([]byte(phone))
+	if err != nil {
+		logs.Warn("could not hash the phone: %v", err)
+	}
+
+	return fmt.Sprintf("%x", h.Sum(nil))
 }
