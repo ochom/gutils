@@ -3,6 +3,7 @@ package helpers
 import (
 	"crypto/sha256"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/ochom/gutils/logs"
@@ -12,9 +13,10 @@ import (
 func ParseMobile(mobile string) string {
 	// replace all non-digit characters
 	mobile = strings.Map(func(r rune) rune {
-		if r >= '0' && r <= '9' {
+		if slices.Contains([]rune("0123456789"), r) {
 			return r
 		}
+
 		return -1
 	}, mobile)
 
