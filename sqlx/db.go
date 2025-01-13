@@ -1,6 +1,7 @@
 package sqlx
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/glebarez/sqlite"
@@ -28,8 +29,8 @@ var defaultConfig = Config{
 	SkipDefaultTransaction: true,
 }
 
-// New initializes the database db with GORM
-func New(configs ...*Config) (err error) {
+// Init initializes the database db with GORM
+func Init(configs ...*Config) (err error) {
 	config := parseConfig(configs...)
 	newDB, err := createInstance(config)
 	if err != nil {
@@ -40,10 +41,20 @@ func New(configs ...*Config) (err error) {
 	return nil
 }
 
-// Create connection create and returns a new connection
-func CreateConnection(cfg ...*Config) (*gorm.DB, error) {
+// New Create connection create and returns a new connection
+func New(cfg ...*Config) (*gorm.DB, *sql.DB, error) {
 	config := parseConfig(cfg...)
-	return createInstance(config)
+	gormDB, err := createInstance(config)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	sqlDB, err := gormDB.DB()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return gormDB, sqlDB, nil
 }
 
 func parseConfig(configs ...*Config) *Config {
