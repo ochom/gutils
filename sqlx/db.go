@@ -23,7 +23,8 @@ var defaultConfig = Config{
 	LogLevel:               logger.Silent,
 	MaxIdleConns:           10,
 	MaxOpenConns:           100,
-	ConnLifeTime:           time.Hour,
+	MaxConnLifeTime:        time.Hour,
+	MaxConnIdleTime:        time.Minute,
 	SkipDefaultTransaction: true,
 }
 
@@ -68,8 +69,16 @@ func parseConfig(configs ...*Config) *Config {
 			config.MaxOpenConns = cfg.MaxOpenConns
 		}
 
-		if cfg.ConnLifeTime != 0 {
-			config.ConnLifeTime = cfg.ConnLifeTime
+		if cfg.MaxConnIdleTime != 0 {
+			config.MaxConnIdleTime = cfg.MaxConnIdleTime
+		}
+
+		if cfg.MaxConnLifeTime != 0 {
+			config.MaxConnLifeTime = cfg.MaxConnLifeTime
+		}
+
+		if cfg.SkipDefaultTransaction {
+			config.SkipDefaultTransaction = cfg.SkipDefaultTransaction
 		}
 	}
 
@@ -87,10 +96,16 @@ func createInstance(config *Config) (*gorm.DB, error) {
 	}
 }
 
+func getGormConfig(config *Config) *gorm.Config {
+	return &gorm.Config{
+		Logger:                 logger.Default.LogMode(config.LogLevel),
+		SkipDefaultTransaction: config.SkipDefaultTransaction,
+		PrepareStmt:            true,
+	}
+}
+
 func createPgInstance(config *Config) (*gorm.DB, error) {
-	conn, err := gorm.Open(postgres.Open(config.Url), &gorm.Config{
-		Logger: logger.Default.LogMode(config.LogLevel),
-	})
+	conn, err := gorm.Open(postgres.Open(config.Url), getGormConfig(config))
 
 	if err != nil {
 		return nil, err
@@ -100,12 +115,7 @@ func createPgInstance(config *Config) (*gorm.DB, error) {
 }
 
 func createMysqlInstance(config *Config) (*gorm.DB, error) {
-	conn, err := gorm.Open(mysql.Open(config.Url), &gorm.Config{
-		Logger:                 logger.Default.LogMode(config.LogLevel),
-		SkipDefaultTransaction: config.SkipDefaultTransaction,
-		PrepareStmt:            true,
-	})
-
+	conn, err := gorm.Open(mysql.Open(config.Url), getGormConfig(config))
 	if err != nil {
 		return nil, err
 	}
@@ -120,9 +130,7 @@ func createSqliteInstance(config *Config) (*gorm.DB, error) {
 	// -  see https://www.golang.dk/articles/go-and-sqlite-in-the-cloud
 
 	url := config.Url + "?_journal=WAL&_timeout=5000&_fk=true"
-	conn, err := gorm.Open(sqlite.Open(url), &gorm.Config{
-		Logger: logger.Default.LogMode(config.LogLevel),
-	})
+	conn, err := gorm.Open(sqlite.Open(url), getGormConfig(config))
 
 	if err != nil {
 		return nil, err
@@ -139,7 +147,8 @@ func createPool(conn *gorm.DB, config *Config) (*gorm.DB, error) {
 
 	_db.SetMaxIdleConns(config.MaxIdleConns)
 	_db.SetMaxOpenConns(config.MaxOpenConns)
-	_db.SetConnMaxLifetime(config.ConnLifeTime)
+	_db.SetConnMaxLifetime(config.MaxConnLifeTime)
+	_db.SetConnMaxIdleTime(config.MaxConnIdleTime)
 
 	return conn, nil
 }

@@ -29,8 +29,9 @@ type Config struct {
 	Driver                 Driver
 	Url                    string
 	LogLevel               logger.LogLevel
-	MaxIdleConns           int
 	MaxOpenConns           int
-	ConnLifeTime           time.Duration
+	MaxIdleConns           int
+	MaxConnIdleTime        time.Duration
+	MaxConnLifeTime        time.Duration
 	SkipDefaultTransaction bool
 }
