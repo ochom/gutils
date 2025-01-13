@@ -6,11 +6,14 @@ import (
 	"gorm.io/gorm/logger"
 )
 
+// Driver supported by this package
+type Driver string
+
 // Drivers ...
 const (
-	Sqlite = iota
-	Postgres
-	MySQL
+	Sqlite   Driver = "sqlite"
+	Postgres Driver = "postgres"
+	MySQL    Driver = "mysql"
 )
 
 // LogLevels ...
@@ -23,7 +26,7 @@ const (
 
 // Database configuration
 type Config struct {
-	Driver                 int
+	Driver                 Driver
 	Url                    string
 	LogLevel               logger.LogLevel
 	MaxIdleConns           int
