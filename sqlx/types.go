@@ -40,3 +40,15 @@ type Config struct {
 	MaxConnLifeTime        time.Duration
 	SkipDefaultTransaction bool
 }
+
+// defaultConfig ...
+var defaultConfig = Config{
+	Driver:                 Sqlite.String(),
+	Url:                    "gorm.db",
+	LogLevel:               logger.Silent,
+	MaxIdleConns:           10,
+	MaxOpenConns:           100,
+	MaxConnLifeTime:        time.Hour,
+	MaxConnIdleTime:        time.Minute,
+	SkipDefaultTransaction: true,
+}

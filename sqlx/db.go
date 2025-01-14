@@ -3,7 +3,6 @@ package sqlx
 import (
 	"database/sql"
 	"fmt"
-	"time"
 
 	"github.com/glebarez/sqlite"
 	"gorm.io/driver/mysql"
@@ -13,44 +12,40 @@ import (
 )
 
 // internal db initialized by the New function
-var db *gorm.DB
+type dbInstance struct {
+	gormDB *gorm.DB
+	sqlDB  *sql.DB
+}
 
-// Conn returns the database db
-func Conn() *gorm.DB { return db }
+var instance = &dbInstance{}
 
-// defaultConfig ...
-var defaultConfig = Config{
-	Driver:                 Sqlite.String(),
-	Url:                    "gorm.db",
-	LogLevel:               logger.Silent,
-	MaxIdleConns:           10,
-	MaxOpenConns:           100,
-	MaxConnLifeTime:        time.Hour,
-	MaxConnIdleTime:        time.Minute,
-	SkipDefaultTransaction: true,
+// GORM returns the gorm db instance
+func GORM() *gorm.DB {
+	return instance.gormDB
+}
+
+// SQL returns the sql db instance
+func SQL() *sql.DB {
+	return instance.sqlDB
 }
 
 // Init initializes the database db with GORM
 func Init(configs ...*Config) (err error) {
 	config := parseConfig(configs...)
-	newDB, err := createInstance(config)
+	gormDB, sqlDB, err := createInstance(config)
 	if err != nil {
 		return err
 	}
 
-	db = newDB
+	instance.gormDB = gormDB
+	instance.sqlDB = sqlDB
 	return nil
 }
 
 // New Create connection create and returns a new connection
 func New(cfg ...*Config) (*gorm.DB, *sql.DB, error) {
 	config := parseConfig(cfg...)
-	gormDB, err := createInstance(config)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	sqlDB, err := gormDB.DB()
+	gormDB, sqlDB, err := createInstance(config)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -97,16 +92,18 @@ func parseConfig(configs ...*Config) *Config {
 	return config
 }
 
-func createInstance(config *Config) (*gorm.DB, error) {
+func createInstance(config *Config) (gormDB *gorm.DB, sqlDB *sql.DB, err error) {
 	switch config.Driver {
 	case Postgres.String():
-		return createPgInstance(config)
+		return createPool(postgres.Open(config.Url), config)
 	case MySQL.String():
-		return createMysqlInstance(config)
+		return createPool(mysql.Open(config.Url), config)
 	case Sqlite.String():
-		return createSqliteInstance(config)
+		url := config.Url + "?_journal=WAL&_timeout=5000&_fk=true"
+		return createPool(sqlite.Open(url), config)
 	default:
-		return nil, fmt.Errorf("unsupported driver: %s. Supported drivers: sqlite, mysql, postgres", config.Driver)
+		err = fmt.Errorf("unsupported driver: %s. Supported drivers: sqlite, mysql, postgres", config.Driver)
+		return
 	}
 }
 
@@ -118,51 +115,21 @@ func getGormConfig(config *Config) *gorm.Config {
 	}
 }
 
-func createPgInstance(config *Config) (*gorm.DB, error) {
-	conn, err := gorm.Open(postgres.Open(config.Url), getGormConfig(config))
-
+func createPool(conn gorm.Dialector, config *Config) (gormDB *gorm.DB, sqlDB *sql.DB, err error) {
+	gormDB, err = gorm.Open(conn, getGormConfig(config))
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	return createPool(conn, config)
-}
-
-func createMysqlInstance(config *Config) (*gorm.DB, error) {
-	conn, err := gorm.Open(mysql.Open(config.Url), getGormConfig(config))
+	sqlDB, err = gormDB.DB()
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	return createPool(conn, config)
-}
+	sqlDB.SetMaxIdleConns(config.MaxIdleConns)
+	sqlDB.SetMaxOpenConns(config.MaxOpenConns)
+	sqlDB.SetConnMaxLifetime(config.MaxConnLifeTime)
+	sqlDB.SetConnMaxIdleTime(config.MaxConnIdleTime)
 
-func createSqliteInstance(config *Config) (*gorm.DB, error) {
-	// - Set WAL mode (not strictly necessary each time because it's persisted in the database, but good for first run)
-	// - Set busy timeout, so concurrent writers wait on each other instead of erroring immediately
-	// - Enable foreign key checks
-	// -  see https://www.golang.dk/articles/go-and-sqlite-in-the-cloud
-
-	url := config.Url + "?_journal=WAL&_timeout=5000&_fk=true"
-	conn, err := gorm.Open(sqlite.Open(url), getGormConfig(config))
-
-	if err != nil {
-		return nil, err
-	}
-
-	return createPool(conn, config)
-}
-
-func createPool(conn *gorm.DB, config *Config) (*gorm.DB, error) {
-	_db, err := conn.DB()
-	if err != nil {
-		return conn, err
-	}
-
-	_db.SetMaxIdleConns(config.MaxIdleConns)
-	_db.SetMaxOpenConns(config.MaxOpenConns)
-	_db.SetConnMaxLifetime(config.MaxConnLifeTime)
-	_db.SetConnMaxIdleTime(config.MaxConnIdleTime)
-
-	return conn, nil
+	return gormDB, sqlDB, nil
 }
