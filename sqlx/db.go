@@ -106,7 +106,7 @@ func createInstance(config *Config) (*gorm.DB, error) {
 	case Sqlite.String():
 		return createSqliteInstance(config)
 	default:
-		return nil, fmt.Errorf("unsupported driver: %s", config.Driver)
+		return nil, fmt.Errorf("unsupported driver: %s. Supported drivers: sqlite, mysql, postgres", config.Driver)
 	}
 }
 
