@@ -9,6 +9,11 @@ import (
 // Driver supported by this package
 type Driver string
 
+// String returns the string representation of the driver
+func (d Driver) String() string {
+	return string(d)
+}
+
 // Drivers ...
 const (
 	Sqlite   Driver = "sqlite"
@@ -26,7 +31,7 @@ const (
 
 // Database configuration
 type Config struct {
-	Driver                 Driver
+	Driver                 string
 	Url                    string
 	LogLevel               logger.LogLevel
 	MaxOpenConns           int

@@ -2,6 +2,7 @@ package sqlx
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/glebarez/sqlite"
@@ -19,7 +20,7 @@ func Conn() *gorm.DB { return db }
 
 // defaultConfig ...
 var defaultConfig = Config{
-	Driver:                 Sqlite,
+	Driver:                 Sqlite.String(),
 	Url:                    "gorm.db",
 	LogLevel:               logger.Silent,
 	MaxIdleConns:           10,
@@ -60,7 +61,7 @@ func New(cfg ...*Config) (*gorm.DB, *sql.DB, error) {
 func parseConfig(configs ...*Config) *Config {
 	config := &defaultConfig
 	for _, cfg := range configs {
-		if cfg.Driver != Sqlite {
+		if cfg.Driver != Sqlite.String() {
 			config.Driver = cfg.Driver
 		}
 
@@ -98,12 +99,14 @@ func parseConfig(configs ...*Config) *Config {
 
 func createInstance(config *Config) (*gorm.DB, error) {
 	switch config.Driver {
-	case Postgres:
+	case Postgres.String():
 		return createPgInstance(config)
-	case MySQL:
+	case MySQL.String():
 		return createMysqlInstance(config)
-	default:
+	case Sqlite.String():
 		return createSqliteInstance(config)
+	default:
+		return nil, fmt.Errorf("unsupported driver: %s", config.Driver)
 	}
 }
 
