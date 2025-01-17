@@ -61,5 +61,5 @@ func (c *defaultClient) sendRequest(url, method string, headers M, body []byte, 
 		return
 	}
 
-	return &Response{res.StatusCode, content}, nil
+	return NewResponse(res.StatusCode, nil, content), nil
 }
