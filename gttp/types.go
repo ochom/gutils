@@ -7,6 +7,17 @@ type Response struct {
 
 	// Body is the response body.
 	Body []byte
+
+	// stores the errors
+	Errors []error
+}
+
+func NewResponse(code int, err []error, body []byte) *Response {
+	return &Response{
+		StatusCode: code,
+		Errors:     err,
+		Body:       body,
+	}
 }
 
 // M  is a map[string]string
