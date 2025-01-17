@@ -80,7 +80,10 @@ func (c *fiberClient) makeRequest(url, method string, headers M, body []byte) (r
 			errStrings = append(errStrings, err.Error())
 		}
 
-		return &Response{500, content}, errors.New(strings.Join(errStrings, ", "))
+		if code == 0 {
+			code = 500
+		}
+		return &Response{code, content}, errors.New(strings.Join(errStrings, ", "))
 	}
 
 	return &Response{code, content}, err
