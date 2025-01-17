@@ -1,7 +1,6 @@
 package gttp
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -24,22 +23,22 @@ func (c *fiberClient) get(url string, headers M, timeouts ...time.Duration) (res
 
 // sendRequest sends a request to the specified URL.
 func (c *fiberClient) sendRequest(url, method string, headers M, body []byte, timeouts ...time.Duration) (resp *Response, err error) {
-	timeout := time.Hour
-	if len(timeouts) > 0 {
-		timeout = timeouts[0]
-	}
+	// timeout := time.Hour
+	// if len(timeouts) > 0 {
+	// 	timeout = timeouts[0]
+	// }
 
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
+	// ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	// defer cancel()
 
-	for {
-		select {
-		case <-ctx.Done():
-			return &Response{500, nil}, ctx.Err()
-		default:
-			return c.makeRequest(url, method, headers, body)
-		}
-	}
+	// select {
+	// case <-ctx.Done():
+	// 	return &Response{500, nil}, ctx.Err()
+	// default:
+	// 	return c.makeRequest(url, method, headers, body)
+	// }
+
+	return c.makeRequest(url, method, headers, body)
 }
 
 // makeRequest sends a request to the specified URL.
