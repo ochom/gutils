@@ -2,7 +2,7 @@ package sqlr
 
 import (
 	"database/sql"
-	"fmt"
+	"strings"
 
 	"github.com/glebarez/sqlite"
 	"gorm.io/driver/mysql"
@@ -56,10 +56,6 @@ func New(cfg ...*Config) (*gorm.DB, *sql.DB, error) {
 func parseConfig(configs ...*Config) *Config {
 	config := &defaultConfig
 	for _, cfg := range configs {
-		if cfg.Driver != Sqlite.String() {
-			config.Driver = cfg.Driver
-		}
-
 		if cfg.Url != "" {
 			config.Url = cfg.Url
 		}
@@ -93,18 +89,16 @@ func parseConfig(configs ...*Config) *Config {
 }
 
 func createInstance(config *Config) (gormDB *gorm.DB, sqlDB *sql.DB, err error) {
-	switch config.Driver {
-	case Postgres.String():
+	if strings.HasPrefix(config.Url, "postgres") {
 		return createPool(postgres.Open(config.Url), config)
-	case MySQL.String():
-		return createPool(mysql.Open(config.Url), config)
-	case Sqlite.String():
-		url := config.Url + "?_journal=WAL&_timeout=5000&_fk=true"
-		return createPool(sqlite.Open(url), config)
-	default:
-		err = fmt.Errorf("unsupported driver: %s. Supported drivers: sqlite, mysql, postgres", config.Driver)
-		return
 	}
+
+	if strings.HasPrefix(config.Url, "mysql") {
+		return createPool(mysql.Open(config.Url), config)
+	}
+
+	url := config.Url + "?_journal=WAL&_timeout=5000&_fk=true"
+	return createPool(sqlite.Open(url), config)
 }
 
 func getGormConfig(config *Config) *gorm.Config {
