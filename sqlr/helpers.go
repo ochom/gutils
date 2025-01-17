@@ -1,4 +1,4 @@
-package sqlx
+package sqlr
 
 import (
 	"github.com/ochom/gutils/logs"
