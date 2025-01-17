@@ -2,11 +2,12 @@ package gttp
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/ochom/gutils/logs"
 )
 
 type fiberClient struct{}
@@ -74,11 +75,12 @@ func (c *fiberClient) makeRequest(url, method string, headers M, body []byte) (r
 
 	code, content, errs := req.Bytes()
 	if len(errs) > 0 {
+		errStrings := []string{}
 		for _, err := range errs {
-			logs.Error("client error: %s", err.Error())
+			errStrings = append(errStrings, err.Error())
 		}
 
-		return &Response{500, content}, errs[0]
+		return &Response{500, content}, errors.New(strings.Join(errStrings, ", "))
 	}
 
 	return &Response{code, content}, err
