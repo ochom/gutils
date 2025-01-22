@@ -18,6 +18,9 @@ type cacheItem struct {
 
 // expired ...
 func (c cacheItem) expired() bool {
+	if c.expiry == 0 {
+		return false
+	}
 	return time.Since(c.createdAt) > c.expiry
 }
 

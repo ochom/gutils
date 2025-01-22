@@ -36,12 +36,7 @@ func (r *redisCache) getClient() *redis.Client {
 }
 
 // set ...
-func (r *redisCache) set(key string, value []byte) error {
-	return r.setWithExpiry(key, value, 0)
-}
-
-// setWithExpiry ...
-func (r *redisCache) setWithExpiry(key string, value []byte, expiry time.Duration) error {
+func (r *redisCache) set(key string, value []byte, expiry time.Duration) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 	defer cancel()
 

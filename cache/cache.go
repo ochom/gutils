@@ -10,8 +10,7 @@ import (
 // Cache ...
 type Cache interface {
 	getClient() *redis.Client
-	set(key string, value []byte) error
-	setWithExpiry(key string, value []byte, expiry time.Duration) error
+	set(key string, value []byte, expiry time.Duration) error
 	get(key string) []byte
 	delete(key string) error
 }
@@ -37,13 +36,8 @@ func Client() *redis.Client {
 }
 
 // Set ...
-func Set(key string, value []byte) error {
-	return conn.set(key, value)
-}
-
-// SetWithExpiry ...
-func SetWithExpiry(key string, value []byte, expiry time.Duration) error {
-	return conn.setWithExpiry(key, value, expiry)
+func Set(key string, value []byte, expiry time.Duration) error {
+	return conn.set(key, value, expiry)
 }
 
 // Get returns the value for the given key.

@@ -32,16 +32,11 @@ func (m *memoryCache) getClient() *redis.Client {
 	return nil
 }
 
-// set ...
-func (m *memoryCache) set(key string, value []byte) error {
-	expiry := time.Hour * time.Duration(env.Int("MAX_CACHE_HOUR", 24))
-	return m.setWithExpiry(key, value, expiry)
-}
-
 // setWithExpiry ...
-func (m *memoryCache) setWithExpiry(key string, value []byte, expiry time.Duration) error {
+func (m *memoryCache) set(key string, value []byte, expiry time.Duration) error {
 	m.mut.Lock()
 	defer m.mut.Unlock()
+
 	item := cacheItem{
 		value:     value,
 		createdAt: time.Now(),
