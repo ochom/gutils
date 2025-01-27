@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"runtime"
 )
 
 const (
@@ -18,7 +19,7 @@ const (
 var c *log.Logger
 
 func init() {
-	c = log.New(os.Stdout, "", log.LstdFlags|log.Lshortfile)
+	c = log.New(os.Stdout, "", log.LstdFlags)
 }
 
 // SetOutput ...
@@ -27,7 +28,14 @@ func SetOutput(w io.Writer) {
 }
 
 func print(s string) {
-	_ = c.Output(3, s)
+	_, file, line, ok := runtime.Caller(1)
+	if ok {
+		s = fmt.Sprintf("%s:%d %s", file, line, s)
+	} else {
+		s = fmt.Sprintf("%s %s", file, s)
+	}
+
+	c.Println(s)
 }
 
 // Debug ...
