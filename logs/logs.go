@@ -28,7 +28,7 @@ func SetOutput(w io.Writer) {
 }
 
 func print(s string) {
-	_, file, line, ok := runtime.Caller(1)
+	_, file, line, ok := runtime.Caller(2)
 	if ok {
 		s = fmt.Sprintf("%s:%d %s", file, line, s)
 	} else {
