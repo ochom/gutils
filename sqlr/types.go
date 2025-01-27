@@ -6,14 +6,6 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// LogLevels ...
-const (
-	Silent logger.LogLevel = iota
-	Error
-	Warn
-	Info
-)
-
 // Database configuration
 type Config struct {
 	Url                    string
@@ -28,7 +20,7 @@ type Config struct {
 // defaultConfig ...
 var defaultConfig = Config{
 	Url:                    "gorm.db",
-	LogLevel:               logger.Silent,
+	LogLevel:               logger.Info,
 	MaxIdleConns:           10,
 	MaxOpenConns:           100,
 	MaxConnLifeTime:        time.Hour,

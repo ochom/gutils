@@ -2,7 +2,10 @@ package sqlr
 
 import (
 	"database/sql"
+	"log"
+	"os"
 	"strings"
+	"time"
 
 	"github.com/glebarez/sqlite"
 	"gorm.io/driver/mysql"
@@ -102,8 +105,17 @@ func createInstance(config *Config) (gormDB *gorm.DB, sqlDB *sql.DB, err error) 
 }
 
 func getGormConfig(config *Config) *gorm.Config {
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags),
+		logger.Config{
+			SlowThreshold:             200 * time.Millisecond,
+			LogLevel:                  config.LogLevel,
+			IgnoreRecordNotFoundError: false,
+			Colorful:                  true,
+		})
+
 	return &gorm.Config{
-		Logger:                 logger.Default.LogMode(config.LogLevel),
+		Logger:                 newLogger,
 		SkipDefaultTransaction: config.SkipDefaultTransaction,
 		PrepareStmt:            true,
 	}
