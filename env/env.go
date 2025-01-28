@@ -11,7 +11,7 @@ import (
 // Get returns env variable or the provided default value when variable not found
 func Get(name string, defaults ...string) string {
 	defaultValue := ""
-	if len(defaults) > 1 {
+	if len(defaults) > 0 {
 		defaultValue = defaults[0]
 	}
 
