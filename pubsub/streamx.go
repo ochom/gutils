@@ -45,7 +45,6 @@ func (s *StreamX) publish(message *StreamMessage) {
 	}
 
 	url := fmt.Sprintf("%s/publish", env.Get("STREAMX_URL", "https://api.streamx.co.ke"))
-	logs.Debug("using streamx url: %s", url)
 	res, err := gttp.Post(url, headers, helpers.ToBytes(message))
 	if err != nil {
 		logs.Error("Failed to publish message to stream: %v", err)
