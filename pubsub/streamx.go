@@ -20,24 +20,28 @@ type StreamMessage struct {
 
 type StreamX struct {
 	Url    string
-	APIKey string
+	apiKey string
 }
 
 var streamX *StreamX
 
+func init() {
+	InitStreamX(env.Get("STREAMX_API_KEY"))
+}
+
 func InitStreamX(apiKey string) {
-	streamX = &StreamX{APIKey: apiKey}
+	streamX = &StreamX{apiKey: apiKey}
 }
 
 func (s *StreamX) publish(message *StreamMessage) {
-	if streamX == nil {
+	if s == nil {
 		logs.Error("StreamX not initialized")
 		return
 	}
 
 	headers := map[string]string{
 		"Content-Type":  "application/json",
-		"Authorization": env.Get("STREAMX_API_KEY"),
+		"Authorization": streamX.apiKey,
 	}
 
 	url := fmt.Sprintf("%s/publish", env.Get("STREAMX_URL", "https://api.streamx.co.ke"))
