@@ -4,16 +4,10 @@ import (
 	"time"
 )
 
-// CacheDriver ...
-type CacheDriver string
-
 const (
-	Redis  CacheDriver = "redis"
-	Memory CacheDriver = "memory"
+	Memory = iota
+	Redis
 )
-
-// V  is the type of the value to be stored in the cache
-type V []byte
 
 // cacheItem ...
 type cacheItem struct {
@@ -24,5 +18,15 @@ type cacheItem struct {
 
 // expired ...
 func (c cacheItem) expired() bool {
+	if c.expiry == 0 {
+		return false
+	}
 	return time.Since(c.createdAt) > c.expiry
+}
+
+// Config ...
+type Config struct {
+	Url      string
+	DbIndex  int
+	Password string
 }

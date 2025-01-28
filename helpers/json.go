@@ -7,22 +7,7 @@ import (
 )
 
 // ToBytes converts provided interface to slice of bytes
-func ToBytes(payload any) []byte {
-	if payload == nil {
-		return nil
-	}
-
-	// Check if the payload is already of type []byte.
-	if bytesPayload, ok := payload.([]byte); ok {
-		return bytesPayload
-	}
-
-	// Check if the payload is already of type string.
-	if stringPayload, ok := payload.(string); ok {
-		return []byte(stringPayload)
-	}
-
-	// Marshal the payload to JSON.
+func ToBytes[T any](payload T) []byte {
 	bytesPayload, err := json.Marshal(&payload)
 	if err != nil {
 		logs.Error("Failed to marshal JSON: %s", err.Error())
@@ -35,12 +20,7 @@ func ToBytes(payload any) []byte {
 // FromBytes converts slice of bytes to provided interface
 func FromBytes[T any](payload []byte) T {
 	var data T
-	if payload == nil {
-		return data
-	}
-
-	err := json.Unmarshal(payload, &data)
-	if err != nil {
+	if err := json.Unmarshal(payload, &data); err != nil {
 		logs.Error("Failed to unmarshal JSON: %s", err.Error())
 		return data
 	}

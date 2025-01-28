@@ -2,77 +2,129 @@ package pubsub
 
 import (
 	"fmt"
+
+	"github.com/streadway/amqp"
 )
 
-// Consumer ...
-type Consumer struct {
-	url      string
-	exchange string
-	queue    string
-	config   Config
+// consumer ...
+type consumer struct {
+	connectionName string
+	url            string
+	queue          string
+
+	// basic
+	durable          bool
+	deleteWhenUnused bool
+
+	// more
+	tag       string
+	autoAck   bool
+	exclusive bool
+	noLocal   bool
+	noWait    bool
 }
 
-type Config struct {
-	Type      ExchangeType
-	Tag       string
-	AutoAck   bool
-	Exclusive bool
-	NoLocal   bool
-	NoWait    bool
+// SetConnectionName implements Consumer.
+func (c *consumer) SetConnectionName(connectionName string) {
+	c.connectionName = connectionName
 }
 
-var defaultConfig = Config{
-	Type:      Direct,
-	Tag:       "",
-	AutoAck:   true,
-	Exclusive: false,
-	NoLocal:   false,
-	NoWait:    false,
+// SetDurable implements Consumer.
+func (c *consumer) SetDurable(durable bool) {
+	c.durable = durable
+}
+
+// SetDeleteWhenUnused implements Consumer.
+func (c *consumer) SetDeleteWhenUnused(deleteWhenUnused bool) {
+	c.deleteWhenUnused = deleteWhenUnused
+}
+
+// SetAutoAck implements Consumer.
+func (c *consumer) SetAutoAck(autoAck bool) {
+	c.autoAck = autoAck
+}
+
+// SetExclusive implements Consumer.
+func (c *consumer) SetExclusive(exclusive bool) {
+	c.exclusive = exclusive
+}
+
+// SetNoLocal implements Consumer.
+func (c *consumer) SetNoLocal(noLocal bool) {
+	c.noLocal = noLocal
+}
+
+// SetNoWait implements Consumer.
+func (c *consumer) SetNoWait(noWait bool) {
+	c.noWait = noWait
+}
+
+// SetTag implements Consumer.
+func (c *consumer) SetTag(tag string) {
+	c.tag = tag
 }
 
 // Create a new consumer instance
-func NewConsumer(rabbitURL, exchange, queue string, config ...Config) *Consumer {
-	c := Consumer{url: rabbitURL, exchange: exchange, queue: queue, config: defaultConfig}
-
-	if len(config) > 0 {
-		c.config = config[0]
+func NewConsumer(rabbitURL, queueName string) Consumer {
+	return &consumer{
+		url:     rabbitURL,
+		queue:   queueName,
+		durable: true,
+		autoAck: true,
 	}
-
-	return &c
 }
 
 // Consume consume messages from the channels
-func (c *Consumer) Consume(stop chan bool, workerFunc func([]byte)) error {
-	ps, err := initQ(c.url)
+func (c *consumer) Consume(workerFunc func([]byte)) error {
+	cfg := amqp.Config{
+		Properties: amqp.Table{
+			"connection_name": c.connectionName,
+		},
+	}
+
+	conn, err := amqp.DialConfig(c.url, cfg)
 	if err != nil {
-		return fmt.Errorf("failed to initialize a connection: %s", err.Error())
-	}
-	defer ps.Close()
-
-	if err := initPubSub(ps.ch, c.exchange, c.queue, string(c.config.Type)); err != nil {
-		return fmt.Errorf("failed to initialize a pubsub: %s", err.Error())
+		return fmt.Errorf("failed to connect to RabbitMQ: %s", err.Error())
 	}
 
-	deliveries, err := ps.ch.Consume(
-		c.queue,            // queue
-		c.config.Tag,       // consumerTag
-		c.config.AutoAck,   // auto-ack
-		c.config.Exclusive, // exclusive
-		c.config.NoLocal,   // no-local
-		c.config.NoWait,    // no-wait
-		nil,                // args
+	defer conn.Close()
+
+	ch, err := conn.Channel()
+	if err != nil {
+		return fmt.Errorf("failed to open a channel: %s", err.Error())
+	}
+
+	defer ch.Close()
+
+	q, err := ch.QueueDeclare(
+		c.queue,            // name
+		c.durable,          // durable
+		c.deleteWhenUnused, // delete when unused
+		c.exclusive,        // exclusive
+		c.noWait,           // no-wait
+		nil,                // arguments
+	)
+	if err != nil {
+		return fmt.Errorf("queue Declare: %s", err.Error())
+	}
+
+	deliveries, err := ch.Consume(
+		q.Name,      // queue
+		c.tag,       // consumerTag
+		c.autoAck,   // auto-ack
+		c.exclusive, // exclusive
+		c.noLocal,   // no-local
+		c.noWait,    // no-wait
+		nil,         // args
 	)
 
 	if err != nil {
 		return fmt.Errorf("failed to consume messages: %s", err.Error())
 	}
 
-	for {
-		select {
-		case <-stop:
-			return fmt.Errorf("stop signal received")
-		case message := <-deliveries:
-			workerFunc(message.Body)
-		}
+	for message := range deliveries {
+		workerFunc(message.Body)
 	}
+
+	return nil
 }

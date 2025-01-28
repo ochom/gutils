@@ -2,9 +2,9 @@ package cache
 
 import (
 	"context"
-	"errors"
 	"time"
 
+	"github.com/ochom/gutils/env"
 	"github.com/ochom/gutils/logs"
 	"github.com/redis/go-redis/v9"
 )
@@ -14,22 +14,20 @@ type redisCache struct {
 	client *redis.Client
 }
 
-func newRedisCache(url ...string) (Cache, error) {
-	if len(url) == 0 {
-		logs.Error("newRedisCache: url is empty")
-		return nil, errors.New("url is empty")
-	}
+func newRedisCache() Cache {
+	cl := redis.NewClient(&redis.Options{
+		Addr:     env.Get("REDIS_URL", "localhost:6379"),
+		Password: env.Get("REDIS_PASSWORD", ""),
+		DB:       env.Int("REDIS_DB_INDEX", 0),
+	})
 
-	opt, err := redis.ParseURL(url[0])
-	if err != nil {
+	if err := cl.Ping(context.Background()).Err(); err != nil {
 		logs.Error("newRedisCache: %s", err.Error())
-		return nil, err
+		return newMemoryCache()
 	}
 
-	cl := redis.NewClient(opt)
-	return &redisCache{
-		client: cl,
-	}, nil
+	logs.Info("Connected to redis")
+	return &redisCache{client: cl}
 }
 
 // getClient ...
@@ -38,23 +36,21 @@ func (r *redisCache) getClient() *redis.Client {
 }
 
 // set ...
-func (r *redisCache) set(key string, value V) {
-	r.setWithExpiry(key, value, 0)
-}
-
-// setWithExpiry ...
-func (r *redisCache) setWithExpiry(key string, value V, expiry time.Duration) {
-	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+func (r *redisCache) set(key string, value []byte, expiry time.Duration) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 	defer cancel()
 
 	if err := r.client.Set(ctx, key, value, expiry).Err(); err != nil {
 		logs.Error("setWithCallback: %s", err.Error())
+		return err
 	}
+
+	return nil
 }
 
 // get ...
-func (r *redisCache) get(key string) V {
-	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+func (r *redisCache) get(key string) []byte {
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
 	defer cancel()
 
 	v, err := r.client.Get(ctx, key).Result()
@@ -66,12 +62,14 @@ func (r *redisCache) get(key string) V {
 }
 
 // delete ...
-func (r *redisCache) delete(key string) {
-	if err := r.client.Del(context.Background(), key).Err(); err != nil {
-		logs.Error("delete: %s", err.Error())
-	}
-}
+func (r *redisCache) delete(key string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
 
-func (r *redisCache) cleanUp() {
-	// TODO
+	if err := r.client.Del(ctx, key).Err(); err != nil {
+		logs.Error("delete: %s", err.Error())
+		return err
+	}
+
+	return nil
 }

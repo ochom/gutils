@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -16,11 +17,14 @@ type memoryCache struct {
 }
 
 func newMemoryCache() Cache {
-	return &memoryCache{
+	c := &memoryCache{
 		cacheWorkers: env.Int("CACHE_TOTAL_WORKERS", 10),
 		items:        make(map[string]cacheItem),
 		mut:          sync.Mutex{},
 	}
+
+	go c.cleanUp()
+	return c
 }
 
 // getClient ...
@@ -28,26 +32,23 @@ func (m *memoryCache) getClient() *redis.Client {
 	return nil
 }
 
-// set ...
-func (m *memoryCache) set(key string, value V) {
-	expiry := time.Hour * time.Duration(env.Int("MAX_CACHE_HOUR", 24))
-	m.setWithExpiry(key, value, expiry)
-}
-
 // setWithExpiry ...
-func (m *memoryCache) setWithExpiry(key string, value V, expiry time.Duration) {
+func (m *memoryCache) set(key string, value []byte, expiry time.Duration) error {
 	m.mut.Lock()
 	defer m.mut.Unlock()
+
 	item := cacheItem{
 		value:     value,
 		createdAt: time.Now(),
 		expiry:    expiry,
 	}
 	m.items[key] = item
+
+	return nil
 }
 
 // get ...
-func (m *memoryCache) get(key string) V {
+func (m *memoryCache) get(key string) []byte {
 	m.mut.Lock()
 	defer m.mut.Unlock()
 
@@ -60,19 +61,29 @@ func (m *memoryCache) get(key string) V {
 }
 
 // delete ...
-func (m *memoryCache) delete(key string) {
+func (m *memoryCache) delete(key string) error {
 	m.mut.Lock()
 	defer m.mut.Unlock()
+
+	if _, ok := m.items[key]; !ok {
+		return fmt.Errorf("key %s not found", key)
+	}
+
 	delete(m.items, key)
+	return nil
 }
 
 // cleanUp deletes expired cache items and calls their callbacks
 func (m *memoryCache) cleanUp() {
-	m.mut.Lock()
-	defer m.mut.Unlock()
-	for key, item := range m.items {
-		if item.expired() {
-			delete(m.items, key)
+	for {
+		m.mut.Lock()
+		for key, item := range m.items {
+			if item.expired() {
+				delete(m.items, key)
+			}
 		}
+
+		m.mut.Unlock()
+		<-time.After(time.Second)
 	}
 }
