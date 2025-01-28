@@ -18,23 +18,30 @@ type publisher struct {
 }
 
 // NewPublisher  creates a new publisher to rabbit
-func NewPublisher(rabbitURL, exchangeName, queueName string) Publisher {
+func NewPublisher(rabbitURL, exchangeName string) Publisher {
 	return &publisher{
 		url:          rabbitURL,
 		exchange:     exchangeName,
-		queue:        queueName,
 		exchangeType: Direct,
 	}
 }
 
+// SetQueueName ...
+func (p *publisher) SetQueueName(queueName string) {
+	p.queue = queueName
+}
+
+// SetConnectionName ...
 func (p *publisher) SetConnectionName(connectionName string) {
 	p.connectionName = connectionName
 }
 
+// SetRoutingKey ...
 func (p *publisher) SetRoutingKey(routingKey string) {
 	p.routingKey = routingKey
 }
 
+// SetExchangeType ...
 func (p *publisher) SetExchangeType(exchangeType ExchangeType) {
 	p.exchangeType = exchangeType
 }
@@ -49,49 +56,9 @@ func (p *publisher) Publish(body []byte) error {
 	return p.publish(body, 0)
 }
 
-// initPubSub ...
-func (p *publisher) initPubSub(ch *amqp.Channel) error {
-	err := ch.ExchangeDeclare(
-		p.exchange,             // name
-		string(p.exchangeType), // type
-		true,                   // durable
-		false,                  // auto-deleted
-		false,                  // internal
-		false,                  // no-wait
-		amqp.Table{
-			"x-delayed-type": "direct",
-		}, // arguments
-	)
-	if err != nil {
-		return fmt.Errorf("exchange Declare: %s", err.Error())
-	}
-
-	// declare queue
-	q, err := ch.QueueDeclare(
-		p.queue, // name
-		true,    // durable
-		false,   // delete when unused
-		false,   // exclusive
-		false,   // no-wait
-		nil,     // arguments
-	)
-	if err != nil {
-		return fmt.Errorf("queue Declare: %s", err.Error())
-	}
-
-	// bind queue to exchange
-	err = ch.QueueBind(
-		q.Name,       // queue name
-		p.routingKey, // routing key
-		p.exchange,   // exchange
-		false,        // no-wait
-		nil,
-	)
-	if err != nil {
-		return fmt.Errorf("queue Bind: %s", err.Error())
-	}
-
-	return nil
+// declare create exchange and queue
+func (p *publisher) declare(ch *amqp.Channel) error {
+	return declare(ch, p.exchange, p.queue, p.routingKey, p.exchangeType)
 }
 
 // publish ...
@@ -119,7 +86,7 @@ func (p *publisher) publish(body []byte, delay time.Duration) error {
 		return fmt.Errorf("failed to set QoS: %s", err.Error())
 	}
 
-	if err := p.initPubSub(channel); err != nil {
+	if err := p.declare(channel); err != nil {
 		return fmt.Errorf("failed to initialize a pubsub: %s", err.Error())
 	}
 
