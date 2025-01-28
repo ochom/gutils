@@ -21,6 +21,7 @@ var (
 type Publisher interface {
 	SetConnectionName(string)
 	SetExchangeType(ExchangeType)
+	SetQueueName(string)
 	SetRoutingKey(string)
 	Publish([]byte) error
 	PublishWithDelay([]byte, time.Duration) error
@@ -28,6 +29,8 @@ type Publisher interface {
 
 type Consumer interface {
 	SetConnectionName(string)
+	SetExchangeName(string)
+	SetRoutingKey(string)
 	SetDurable(bool)
 	SetDeleteWhenUnused(bool)
 	SetTag(string)
