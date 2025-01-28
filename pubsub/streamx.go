@@ -52,7 +52,7 @@ func (s *StreamX) publish(message *StreamMessage) {
 	}
 
 	if res.StatusCode != 200 {
-		logs.Error("Failed to publish message to stream: %v", res.Body)
+		logs.Error("Failed to publish message to stream: %v", string(res.Body))
 	}
 
 	logs.Info("StreamMessage published to StreamX ==> msgID: %s", message.ID)
