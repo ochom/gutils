@@ -57,20 +57,18 @@ func (c *fiberClient) sendRequest(url, method string, headers M, body []byte, ti
 
 // makeRequest sends a request to the specified URL.
 func (c *fiberClient) makeRequest(url, method string, headers M, body []byte) (resp *Response) {
-	client := fiber.AcquireClient()
 	var req *fiber.Agent
-
 	switch method {
 	case "POST":
-		req = client.Post(url)
+		req = fiber.Post(url)
 	case "GET":
-		req = client.Get(url)
+		req = fiber.Get(url)
 	case "DELETE":
-		req = client.Delete(url)
+		req = fiber.Delete(url)
 	case "PUT":
-		req = client.Put(url)
+		req = fiber.Put(url)
 	case "PATCH":
-		req = client.Patch(url)
+		req = fiber.Patch(url)
 	default:
 		err := fmt.Errorf("unknown method: %s", method)
 		return NewResponse(500, []error{err}, nil)
