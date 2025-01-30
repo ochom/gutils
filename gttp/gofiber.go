@@ -1,7 +1,6 @@
 package gttp
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -23,40 +22,52 @@ func (c *fiberClient) get(url string, headers M, timeouts ...time.Duration) (res
 }
 
 // sendRequest sends a request to the specified URL.
-func (c *fiberClient) sendRequest(url, method string, headers M, body []byte, timeouts ...time.Duration) (resp *Response, err error) {
+func (c *fiberClient) sendRequest(url, method string, headers M, body []byte, timeouts ...time.Duration) (*Response, error) {
 	timeout := time.Hour
 	if len(timeouts) > 0 {
 		timeout = timeouts[0]
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
+	// ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	// defer cancel()
 
-	result := make(chan *Response, 1)
-	go func() {
-		resp := c.makeRequest(url, method, headers, body)
-		result <- resp
-	}()
+	// result := make(chan *Response, 1)
+	// go func() {
+	// 	resp := c.makeRequest(url, method, headers, body)
+	// 	result <- resp
+	// }()
 
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case r := <-result:
-		if len(r.Errors) == 0 {
-			return r, nil
-		}
+	// select {
+	// case <-ctx.Done():
+	// 	return nil, ctx.Err()
+	// case r := <-result:
+	// 	if len(r.Errors) == 0 {
+	// 		return r, nil
+	// 	}
 
-		errStrings := []string{}
-		for _, err := range r.Errors {
-			errStrings = append(errStrings, err.Error())
-		}
+	// 	errStrings := []string{}
+	// 	for _, err := range r.Errors {
+	// 		errStrings = append(errStrings, err.Error())
+	// 	}
 
-		return r, errors.New(strings.Join(errStrings, ", "))
+	// 	return r, errors.New(strings.Join(errStrings, ", "))
+	// }
+
+	resp := c.makeRequest(url, method, headers, body, timeout)
+	if len(resp.Errors) == 0 {
+		return resp, nil
 	}
+
+	errStrings := []string{}
+	for _, err := range resp.Errors {
+		errStrings = append(errStrings, err.Error())
+	}
+
+	return resp, errors.New(strings.Join(errStrings, ", "))
 }
 
 // makeRequest sends a request to the specified URL.
-func (c *fiberClient) makeRequest(url, method string, headers M, body []byte) (resp *Response) {
+func (c *fiberClient) makeRequest(url, method string, headers M, body []byte, timeout time.Duration) (resp *Response) {
 	var req *fiber.Agent
 	switch method {
 	case "POST":
@@ -76,6 +87,7 @@ func (c *fiberClient) makeRequest(url, method string, headers M, body []byte) (r
 
 	// skip ssl verification
 	req.InsecureSkipVerify()
+	req.Timeout(timeout)
 
 	for k, v := range headers {
 		req.Add(k, v)
