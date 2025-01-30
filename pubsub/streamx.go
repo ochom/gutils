@@ -15,7 +15,7 @@ type StreamMessage struct {
 	Channel    string `json:"channel"`
 	ID         string `json:"id"`
 	Event      string `json:"event"`
-	Data       any    `json:"message"`
+	Data       any    `json:"data"`
 }
 
 type StreamX struct {
