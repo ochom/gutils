@@ -18,11 +18,12 @@ type publisher struct {
 }
 
 // NewPublisher  creates a new publisher to rabbit
-func NewPublisher(rabbitURL, exchangeName string) Publisher {
+func NewPublisher(rabbitURL, exchangeName, queueName string) Publisher {
 	return &publisher{
 		url:          rabbitURL,
 		exchange:     exchangeName,
 		exchangeType: Direct,
+		queue:        queueName,
 	}
 }
 
