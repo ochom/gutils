@@ -16,7 +16,7 @@ func Get(name string, defaults ...string) string {
 	}
 
 	value, ok := os.LookupEnv(name)
-	if !ok {
+	if !ok || value == "" {
 		return defaultValue
 	}
 
@@ -26,7 +26,7 @@ func Get(name string, defaults ...string) string {
 // Int returns an integer from env variable or the provided default value when variable not found
 func Int(name string, defaultValue int) int {
 	value, ok := os.LookupEnv(name)
-	if !ok {
+	if !ok || value == "" {
 		return defaultValue
 	}
 
@@ -41,7 +41,7 @@ func Int(name string, defaultValue int) int {
 // Bool returns a boolean from env variable or the provided default value when variable not found
 func Bool(name string, defaultValue bool) bool {
 	value, ok := os.LookupEnv(name)
-	if !ok {
+	if !ok || value == "" {
 		return defaultValue
 	}
 
@@ -56,7 +56,7 @@ func Bool(name string, defaultValue bool) bool {
 // Float returns a float from env variable or the provided default value when variable not found
 func Float(name string, defaultValue float64) float64 {
 	value, ok := os.LookupEnv(name)
-	if !ok {
+	if !ok || value == "" {
 		return defaultValue
 	}
 
@@ -71,7 +71,7 @@ func Float(name string, defaultValue float64) float64 {
 // MustGet returns env variable or panics when variable not found
 func MustGet(name string) string {
 	value, ok := os.LookupEnv(name)
-	if !ok {
+	if !ok || value == "" {
 		panic(fmt.Errorf("MustGet Env: %s not found", name))
 	}
 
@@ -81,7 +81,7 @@ func MustGet(name string) string {
 // MustInt returns an integer from env variable or panics when variable not found
 func MustInt(name string) int {
 	value, ok := os.LookupEnv(name)
-	if !ok {
+	if !ok || value == "" {
 		panic(fmt.Errorf("MustInt Env: %s not found", name))
 	}
 
@@ -96,7 +96,7 @@ func MustInt(name string) int {
 // MustBool returns a boolean from env variable or panics when variable not found
 func MustBool(name string) bool {
 	value, ok := os.LookupEnv(name)
-	if !ok {
+	if !ok || value == "" {
 		panic(fmt.Errorf("MustBool Env: %s not found", name))
 	}
 
@@ -111,7 +111,7 @@ func MustBool(name string) bool {
 // MustFloat returns a float from env variable or panics when variable not found
 func MustFloat(name string) float64 {
 	value, ok := os.LookupEnv(name)
-	if !ok {
+	if !ok || value == "" {
 		panic(fmt.Errorf("MustFloat Env: %s not found", name))
 	}
 
