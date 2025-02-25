@@ -41,8 +41,6 @@ func (s streamx) PublishStream(message *StreamMessage) {
 		logs.Error("Failed to publish message to stream: %v", string(res.Body))
 		return
 	}
-
-	logs.Info("StreamMessage published to streamx ==> msgID: %s", message.ID)
 }
 
 type StreamSdkConfig struct {
