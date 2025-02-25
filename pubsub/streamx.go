@@ -18,33 +18,19 @@ type StreamMessage struct {
 	Data       any    `json:"data"`
 }
 
-type StreamX struct {
-	Url    string
+type streamx struct {
+	url    string
 	apiKey string
 }
 
-var streamX *StreamX
-
-func init() {
-	InitStreamX(env.Get("STREAMX_API_KEY"))
-}
-
-func InitStreamX(apiKey string) {
-	streamX = &StreamX{apiKey: apiKey}
-}
-
-func (s *StreamX) publish(message *StreamMessage) {
-	if s == nil {
-		logs.Error("StreamX not initialized")
-		return
-	}
-
+// PublishStream publishes a message to the stream
+func (s streamx) PublishStream(message *StreamMessage) {
 	headers := map[string]string{
 		"Content-Type":  "application/json",
-		"Authorization": streamX.apiKey,
+		"Authorization": s.apiKey,
 	}
 
-	url := fmt.Sprintf("%s/publish", env.Get("STREAMX_URL", "https://api.streamx.co.ke"))
+	url := fmt.Sprintf("%s/publish", s.url)
 	res, err := gttp.Post(url, headers, helpers.ToBytes(message))
 	if err != nil {
 		logs.Error("Failed to publish message to stream: %v", err)
@@ -56,10 +42,36 @@ func (s *StreamX) publish(message *StreamMessage) {
 		return
 	}
 
-	logs.Info("StreamMessage published to StreamX ==> msgID: %s", message.ID)
+	logs.Info("StreamMessage published to streamx ==> msgID: %s", message.ID)
 }
 
-// PublishStream publishes a message to the stream
-func PublishStream(message *StreamMessage) {
-	go streamX.publish(message)
+type StreamSdkConfig struct {
+	Url    string
+	ApiKey string
+}
+
+var DefaultConfig = &StreamSdkConfig{
+	Url:    env.Get("STREAMX_URL", "https://api.streamx.co.ke"),
+	ApiKey: env.Get("STREAMX_API_KEY"),
+}
+
+func NewStreamX(cfg *StreamSdkConfig) (sdk *streamx) {
+	sdk = &streamx{
+		url:    DefaultConfig.Url,
+		apiKey: DefaultConfig.ApiKey,
+	}
+
+	if cfg == nil {
+		return
+	}
+
+	if cfg.Url != "" {
+		sdk.url = cfg.Url
+	}
+
+	if cfg.ApiKey != "" {
+		sdk.apiKey = cfg.ApiKey
+	}
+
+	return sdk
 }
