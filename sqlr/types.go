@@ -8,13 +8,14 @@ import (
 
 // Database configuration
 type Config struct {
-	Url                    string
-	LogLevel               logger.LogLevel
-	MaxOpenConns           int
-	MaxIdleConns           int
-	MaxConnIdleTime        time.Duration
-	MaxConnLifeTime        time.Duration
-	SkipDefaultTransaction bool
+	Url                       string
+	LogLevel                  logger.LogLevel
+	IgnoreRecordNotFoundError bool
+	MaxOpenConns              int
+	MaxIdleConns              int
+	MaxConnIdleTime           time.Duration
+	MaxConnLifeTime           time.Duration
+	SkipDefaultTransaction    bool
 }
 
 // defaultConfig ...
