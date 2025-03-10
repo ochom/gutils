@@ -76,3 +76,8 @@ func Count[T any](scopes ...func(db *gorm.DB) *gorm.DB) int {
 
 	return int(count)
 }
+
+// Raw ...
+func Raw(query string, values ...any) *gorm.DB {
+	return instance.gormDB.Raw(query, values...)
+}
