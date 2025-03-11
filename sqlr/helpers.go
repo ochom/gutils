@@ -86,3 +86,17 @@ func Raw(query string, values ...any) *gorm.DB {
 func Exec(query string, values ...any) error {
 	return instance.gormDB.Exec(query, values...).Error
 }
+
+// Transact ...
+func Transact(fn ...func(tx *gorm.DB) error) error {
+	err := instance.gormDB.Transaction(func(db *gorm.DB) error {
+		for _, f := range fn {
+			if err := f(db); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	return err
+}
