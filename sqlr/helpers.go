@@ -68,13 +68,17 @@ func FindWithLimit[T any](page, limit int, scopes ...func(db *gorm.DB) *gorm.DB)
 // Count ...
 func Count[T any](scopes ...func(db *gorm.DB) *gorm.DB) int {
 	var count int64
-	var model T
-	if err := instance.gormDB.Model(&model).Scopes(scopes...).Count(&count).Error; err != nil {
+	if err := instance.gormDB.Model(new(T)).Scopes(scopes...).Count(&count).Error; err != nil {
 		logs.Info("Count: %s", err.Error())
 		return 0
 	}
 
 	return int(count)
+}
+
+// Exists ...
+func Exists[T any](scopes ...func(db *gorm.DB) *gorm.DB) bool {
+	return instance.gormDB.Scopes(scopes...).First(new(T)).Error == nil
 }
 
 // Raw ...
