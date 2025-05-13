@@ -78,7 +78,14 @@ func Count[T any](scopes ...func(db *gorm.DB) *gorm.DB) int {
 
 // Exists ...
 func Exists[T any](scopes ...func(db *gorm.DB) *gorm.DB) bool {
-	return instance.gormDB.Scopes(scopes...).First(new(T)).Error == nil
+	query := instance.gormDB.Model(new(T)).Scopes(scopes...).Select("1").Limit(1)
+	var exists bool
+	if err := query.Scan(&exists).Error; err != nil {
+		logs.Info("Exists: %s", err.Error())
+		return false
+	}
+
+	return exists
 }
 
 // Raw ...
