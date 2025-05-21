@@ -6,7 +6,7 @@ import (
 )
 
 // ShortID translates a number to a unique character string
-func ShortID(input int, size int) string {
+func ShortID(input int) string {
 	modulus := 1 << 16                        // Modulus for Feistel function
 	rounds := 4                               // Number of Feistel rounds
 	keys := []int{12345, 67890, 54321, 98765} // Round keys
