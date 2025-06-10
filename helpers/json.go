@@ -1,7 +1,7 @@
 package helpers
 
 import (
-	"github.com/goccy/go-json"
+	"encoding/json"
 
 	"github.com/ochom/gutils/logs"
 )
