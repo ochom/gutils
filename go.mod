@@ -23,6 +23,7 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/glebarez/go-sqlite v1.21.2 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
+	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/uuid v1.5.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
