@@ -18,13 +18,13 @@ type StreamMessage struct {
 	Data       any    `json:"data"`
 }
 
-type streamx struct {
+type StreamSdk struct {
 	url    string
 	apiKey string
 }
 
 // PublishStream publishes a message to the stream
-func (s streamx) PublishStream(message *StreamMessage) {
+func (s StreamSdk) PublishStream(message *StreamMessage) {
 	headers := map[string]string{
 		"Content-Type":  "application/json",
 		"Authorization": s.apiKey,
@@ -49,12 +49,12 @@ type StreamSdkConfig struct {
 }
 
 var DefaultConfig = &StreamSdkConfig{
-	Url:    env.Get("STREAMX_URL", "https://api.streamx.co.ke"),
+	Url:    env.Get("STREAMX_URL", "https://api.StreamSdk.co.ke"),
 	ApiKey: env.Get("STREAMX_API_KEY"),
 }
 
-func NewStreamX(cfg *StreamSdkConfig) (sdk *streamx) {
-	sdk = &streamx{
+func NewStreamX(cfg *StreamSdkConfig) (sdk *StreamSdk) {
+	sdk = &StreamSdk{
 		url:    DefaultConfig.Url,
 		apiKey: DefaultConfig.ApiKey,
 	}
