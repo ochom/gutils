@@ -47,6 +47,8 @@ func (s StreamSdk) PublishStream(channel string, event string, data any) {
 	}
 }
 
+// NewStreamX create new instance of StreamSdk
+// with optional parameters for instance ID, URL, and API key.
 func NewStreamX(params ...string) (sdk *StreamSdk) {
 	sdk = &StreamSdk{
 		url:        url,
@@ -55,15 +57,15 @@ func NewStreamX(params ...string) (sdk *StreamSdk) {
 	}
 
 	if len(params) > 0 {
-		sdk.url = params[0]
+		sdk.instanceID = params[0]
 	}
 
 	if len(params) > 1 {
-		sdk.apiKey = params[1]
+		sdk.url = params[1]
 	}
 
 	if len(params) > 2 {
-		sdk.instanceID = params[2]
+		sdk.apiKey = params[2]
 	}
 
 	return sdk
