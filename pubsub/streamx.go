@@ -9,29 +9,33 @@ import (
 	"github.com/ochom/gutils/logs"
 )
 
-// StreamMessage ...
-type StreamMessage struct {
-	InstanceID string `json:"instanceID"`
-	Channel    string `json:"channel"`
-	ID         string `json:"id"`
-	Event      string `json:"event"`
-	Data       any    `json:"data"`
-}
+var (
+	url        = env.Get("STREAMX_URL", "https://api.StreamSdk.co.ke")
+	apiKey     = env.Get("STREAMX_API_KEY", "")
+	instanceID = env.Get("STREAMX_INSTANCE_ID", "default")
+)
 
 type StreamSdk struct {
-	url    string
-	apiKey string
+	url        string
+	apiKey     string
+	instanceID string
 }
 
 // PublishStream publishes a message to the stream
-func (s StreamSdk) PublishStream(message *StreamMessage) {
+func (s StreamSdk) PublishStream(channel string, event string, data any) {
 	headers := map[string]string{
 		"Content-Type":  "application/json",
 		"Authorization": s.apiKey,
 	}
 
 	url := fmt.Sprintf("%s/publish", s.url)
-	res, err := gttp.Post(url, headers, helpers.ToBytes(message))
+	res, err := gttp.Post(url, headers, helpers.ToBytes(map[string]any{
+		"instance_id": s.instanceID,
+		"channel":     channel,
+		"event":       event,
+		"data":        data,
+	}))
+
 	if err != nil {
 		logs.Error("Failed to publish message to stream: %v", err)
 		return
@@ -43,32 +47,23 @@ func (s StreamSdk) PublishStream(message *StreamMessage) {
 	}
 }
 
-type StreamSdkConfig struct {
-	Url    string
-	ApiKey string
-}
-
-var DefaultConfig = &StreamSdkConfig{
-	Url:    env.Get("STREAMX_URL", "https://api.StreamSdk.co.ke"),
-	ApiKey: env.Get("STREAMX_API_KEY"),
-}
-
-func NewStreamX(cfg *StreamSdkConfig) (sdk *StreamSdk) {
+func NewStreamX(params ...string) (sdk *StreamSdk) {
 	sdk = &StreamSdk{
-		url:    DefaultConfig.Url,
-		apiKey: DefaultConfig.ApiKey,
+		url:        url,
+		apiKey:     apiKey,
+		instanceID: instanceID,
 	}
 
-	if cfg == nil {
-		return
+	if len(params) > 0 {
+		sdk.url = params[0]
 	}
 
-	if cfg.Url != "" {
-		sdk.url = cfg.Url
+	if len(params) > 1 {
+		sdk.apiKey = params[1]
 	}
 
-	if cfg.ApiKey != "" {
-		sdk.apiKey = cfg.ApiKey
+	if len(params) > 2 {
+		sdk.instanceID = params[2]
 	}
 
 	return sdk
