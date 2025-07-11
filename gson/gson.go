@@ -1,4 +1,4 @@
-package helpers
+package gson
 
 import (
 	"encoding/json"
@@ -7,34 +7,39 @@ import (
 	"github.com/ochom/gutils/logs"
 )
 
-type ByteData []byte
+type byteData []byte
 
 // String converts byte data to string
-func (b ByteData) String() string {
+func (b byteData) String() string {
 	if b == nil {
 		return ""
 	}
 	return string(b)
 }
 
-// ToBytes converts provided interface to slice of bytes
-func ToBytes(payload any) ByteData {
+// Bytes converts byte data to slice of bytes
+func (b byteData) Bytes() []byte {
+	return b
+}
+
+// Marshal converts provided interface to slice of bytes
+func Marshal(payload any) byteData {
 	stringValue, ok := payload.(string)
 	if ok {
-		return ByteData(stringValue)
+		return byteData(stringValue)
 	}
 
 	numericValue, ok := payload.(float64)
 	if ok {
-		return ByteData(fmt.Appendf(nil, "%f", numericValue))
+		return byteData(fmt.Appendf(nil, "%f", numericValue))
 	}
 
 	boolValue, ok := payload.(bool)
 	if ok {
 		if boolValue {
-			return ByteData("true")
+			return byteData("true")
 		}
-		return ByteData("false")
+		return byteData("false")
 	}
 
 	if payload == nil {
@@ -50,8 +55,8 @@ func ToBytes(payload any) ByteData {
 	return bytesPayload
 }
 
-// FromBytes converts slice of bytes to provided interface
-func FromBytes[T any](payload []byte) T {
+// Unmarshal converts slice of bytes to provided interface
+func Unmarshal[T any](payload []byte) T {
 	var data T
 	if err := json.Unmarshal(payload, &data); err != nil {
 		logs.Error("Failed to unmarshal JSON: %s", err.Error())
