@@ -1,7 +1,7 @@
-package gson
+package json
 
 import (
-	"encoding/json"
+	baseJSON "encoding/json"
 
 	"github.com/ochom/gutils/logs"
 )
@@ -21,9 +21,9 @@ func (b byteData) Bytes() []byte {
 	return b
 }
 
-// Marshal converts provided object or array to slice of bytes
-func Marshal(payload any) byteData {
-	bytesPayload, err := json.Marshal(&payload)
+// Encode encodes the given payload into JSON format in byte slice
+func Encode(payload any) byteData {
+	bytesPayload, err := baseJSON.Marshal(&payload)
 	if err != nil {
 		logs.Error("Failed to marshal JSON: %s", err.Error())
 		return nil
@@ -32,10 +32,10 @@ func Marshal(payload any) byteData {
 	return bytesPayload
 }
 
-// Unmarshal converts slice of bytes to provided object or array
-func Unmarshal[T any](payload []byte) T {
+// Decode decodes JSON payload into the specified type
+func Decode[T any](payload []byte) T {
 	var data T
-	if err := json.Unmarshal(payload, &data); err != nil {
+	if err := baseJSON.Unmarshal(payload, &data); err != nil {
 		logs.Error("Failed to unmarshal JSON: %s", err.Error())
 		return data
 	}
