@@ -1,6 +1,8 @@
 package sqlr
 
 import (
+	"context"
+
 	"github.com/ochom/gutils/logs"
 	"gorm.io/gorm"
 )
@@ -10,14 +12,29 @@ func Create[T any](data *T) error {
 	return instance.gormDB.Create(data).Error
 }
 
+// CreateWithCtx ...
+func CreateWithCtx[T any](ctx context.Context, data *T) error {
+	return instance.gormDB.WithContext(ctx).Create(data).Error
+}
+
 // Update ...
 func Update[T any](data *T) error {
 	return instance.gormDB.Save(data).Error
 }
 
+// UpdateWithCtx ...
+func UpdateWithCtx[T any](ctx context.Context, data *T) error {
+	return instance.gormDB.WithContext(ctx).Save(data).Error
+}
+
 // Delete ...
 func Delete[T any](scopes ...func(db *gorm.DB) *gorm.DB) error {
 	return instance.gormDB.Scopes(scopes...).Delete(new(T)).Error
+}
+
+// DeleteWithCtx ...
+func DeleteWithCtx[T any](ctx context.Context, scopes ...func(db *gorm.DB) *gorm.DB) error {
+	return instance.gormDB.WithContext(ctx).Scopes(scopes...).Delete(new(T)).Error
 }
 
 // DeleteById ...
@@ -101,6 +118,20 @@ func Exec(query string, values ...any) error {
 // Transact ...
 func Transact(fn ...func(tx *gorm.DB) error) error {
 	err := instance.gormDB.Transaction(func(db *gorm.DB) error {
+		for _, f := range fn {
+			if err := f(db); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	return err
+}
+
+// TransactWithCtx ...
+func TransactWithCtx(ctx context.Context, fn ...func(tx *gorm.DB) error) error {
+	err := instance.gormDB.WithContext(ctx).Transaction(func(db *gorm.DB) error {
 		for _, f := range fn {
 			if err := f(db); err != nil {
 				return err
