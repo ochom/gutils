@@ -5,7 +5,7 @@ import (
 
 	"github.com/ochom/gutils/env"
 	"github.com/ochom/gutils/gttp"
-	"github.com/ochom/gutils/json"
+	"github.com/ochom/gutils/jsonx"
 	"github.com/ochom/gutils/logs"
 )
 
@@ -29,7 +29,7 @@ func (s StreamSdk) PublishStream(channel string, event string, data any) {
 	}
 
 	url := fmt.Sprintf("%s/publish", s.url)
-	res, err := gttp.Post(url, headers, json.Encode(map[string]any{
+	res, err := gttp.Post(url, headers, jsonx.Encode(map[string]any{
 		"instance_id": s.instanceID,
 		"channel":     channel,
 		"event":       event,
