@@ -8,7 +8,7 @@ import (
 )
 
 func TestGetEnv(t *testing.T) {
-	os.Setenv("HELLO", "world")
+	_ = os.Setenv("HELLO", "world")
 	type args struct {
 		key          string
 		defaultValue string
@@ -45,8 +45,8 @@ func TestGetEnv(t *testing.T) {
 }
 
 func TestInt(t *testing.T) {
-	os.Setenv("HELLO", "45")
-	os.Setenv("HELLO2", "45s")
+	_ = os.Setenv("HELLO", "45")
+	_ = os.Setenv("HELLO2", "45s")
 
 	type args struct {
 		key          string
@@ -92,9 +92,9 @@ func TestInt(t *testing.T) {
 }
 
 func TestBool(t *testing.T) {
-	os.Setenv("HELLO", "true")
-	os.Setenv("HELLO2", "false")
-	os.Setenv("HELLO3", "test")
+	_ = os.Setenv("HELLO", "true")
+	_ = os.Setenv("HELLO2", "false")
+	_ = os.Setenv("HELLO3", "test")
 
 	type args struct {
 		key          string
@@ -148,8 +148,8 @@ func TestBool(t *testing.T) {
 }
 
 func TestFloat(t *testing.T) {
-	os.Setenv("HELLO", "45.5")
-	os.Setenv("HELLO2", "45.5s")
+	_ = os.Setenv("HELLO", "45.5")
+	_ = os.Setenv("HELLO2", "45.5s")
 
 	type args struct {
 		key          string
