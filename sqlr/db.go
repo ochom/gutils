@@ -110,7 +110,7 @@ func getGormConfig(config *Config) *gorm.Config {
 		logger.Config{
 			SlowThreshold:             200 * time.Millisecond,
 			LogLevel:                  config.LogLevel,
-			IgnoreRecordNotFoundError: false,
+			IgnoreRecordNotFoundError: config.IgnoreRecordNotFoundError,
 			Colorful:                  true,
 		})
 

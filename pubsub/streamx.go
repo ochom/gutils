@@ -5,47 +5,37 @@ import (
 
 	"github.com/ochom/gutils/env"
 	"github.com/ochom/gutils/gttp"
-	"github.com/ochom/gutils/helpers"
+	"github.com/ochom/gutils/jsonx"
 	"github.com/ochom/gutils/logs"
 )
 
-// StreamMessage ...
-type StreamMessage struct {
-	InstanceID string `json:"instanceID"`
-	Channel    string `json:"channel"`
-	ID         string `json:"id"`
-	Event      string `json:"event"`
-	Data       any    `json:"message"`
+var (
+	url        = env.Get("STREAMX_URL", "https://api.StreamSdk.co.ke")
+	apiKey     = env.Get("STREAMX_API_KEY", "")
+	instanceID = env.Get("STREAMX_INSTANCE_ID", "default")
+)
+
+type StreamSdk struct {
+	url        string
+	apiKey     string
+	instanceID string
 }
 
-type StreamX struct {
-	Url    string
-	apiKey string
-}
-
-var streamX *StreamX
-
-func init() {
-	InitStreamX(env.Get("STREAMX_API_KEY"))
-}
-
-func InitStreamX(apiKey string) {
-	streamX = &StreamX{apiKey: apiKey}
-}
-
-func (s *StreamX) publish(message *StreamMessage) {
-	if s == nil {
-		logs.Error("StreamX not initialized")
-		return
-	}
-
+// PublishStream publishes a message to the stream
+func (s StreamSdk) PublishStream(channel string, event string, data any) {
 	headers := map[string]string{
 		"Content-Type":  "application/json",
-		"Authorization": streamX.apiKey,
+		"Authorization": s.apiKey,
 	}
 
-	url := fmt.Sprintf("%s/publish", env.Get("STREAMX_URL", "https://api.streamx.co.ke"))
-	res, err := gttp.Post(url, headers, helpers.ToBytes(message))
+	url := fmt.Sprintf("%s/publish", s.url)
+	res, err := gttp.Post(url, headers, jsonx.Encode(map[string]any{
+		"instance_id": s.instanceID,
+		"channel":     channel,
+		"event":       event,
+		"data":        data,
+	}))
+
 	if err != nil {
 		logs.Error("Failed to publish message to stream: %v", err)
 		return
@@ -55,11 +45,28 @@ func (s *StreamX) publish(message *StreamMessage) {
 		logs.Error("Failed to publish message to stream: %v", string(res.Body))
 		return
 	}
-
-	logs.Info("StreamMessage published to StreamX ==> msgID: %s", message.ID)
 }
 
-// PublishStream publishes a message to the stream
-func PublishStream(message *StreamMessage) {
-	go streamX.publish(message)
+// NewStreamX create new instance of StreamSdk
+// with optional parameters for instance ID, URL, and API key.
+func NewStreamX(params ...string) (sdk *StreamSdk) {
+	sdk = &StreamSdk{
+		url:        url,
+		apiKey:     apiKey,
+		instanceID: instanceID,
+	}
+
+	if len(params) > 0 {
+		sdk.instanceID = params[0]
+	}
+
+	if len(params) > 1 {
+		sdk.url = params[1]
+	}
+
+	if len(params) > 2 {
+		sdk.apiKey = params[2]
+	}
+
+	return sdk
 }

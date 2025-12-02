@@ -1,6 +1,8 @@
 package sqlr
 
 import (
+	"context"
+
 	"github.com/ochom/gutils/logs"
 	"gorm.io/gorm"
 )
@@ -10,9 +12,19 @@ func Create[T any](data *T) error {
 	return instance.gormDB.Create(data).Error
 }
 
+// CreateWithCtx ...
+func CreateWithCtx[T any](ctx context.Context, data *T) error {
+	return instance.gormDB.WithContext(ctx).Create(data).Error
+}
+
 // Update ...
 func Update[T any](data *T) error {
 	return instance.gormDB.Save(data).Error
+}
+
+// UpdateWithCtx ...
+func UpdateWithCtx[T any](ctx context.Context, data *T) error {
+	return instance.gormDB.WithContext(ctx).Save(data).Error
 }
 
 // UpdateOne ...
@@ -24,6 +36,11 @@ func UpdateOne[T any](scope func(db *gorm.DB) *gorm.DB, updates map[string]any) 
 // Delete ...
 func Delete[T any](scopes ...func(db *gorm.DB) *gorm.DB) error {
 	return instance.gormDB.Scopes(scopes...).Delete(new(T)).Error
+}
+
+// DeleteWithCtx ...
+func DeleteWithCtx[T any](ctx context.Context, scopes ...func(db *gorm.DB) *gorm.DB) error {
+	return instance.gormDB.WithContext(ctx).Scopes(scopes...).Delete(new(T)).Error
 }
 
 // DeleteById ...
@@ -74,11 +91,60 @@ func FindWithLimit[T any](page, limit int, scopes ...func(db *gorm.DB) *gorm.DB)
 // Count ...
 func Count[T any](scopes ...func(db *gorm.DB) *gorm.DB) int {
 	var count int64
-	var model T
-	if err := instance.gormDB.Model(&model).Scopes(scopes...).Count(&count).Error; err != nil {
+	if err := instance.gormDB.Model(new(T)).Scopes(scopes...).Count(&count).Error; err != nil {
 		logs.Info("Count: %s", err.Error())
 		return 0
 	}
 
 	return int(count)
+}
+
+// Exists ...
+func Exists[T any](scopes ...func(db *gorm.DB) *gorm.DB) bool {
+	query := instance.gormDB.Model(new(T)).Scopes(scopes...).Select("1").Limit(1)
+	var exists bool
+	if err := query.Scan(&exists).Error; err != nil {
+		logs.Info("Exists: %s", err.Error())
+		return false
+	}
+
+	return exists
+}
+
+// Raw ...
+func Raw(query string, values ...any) *gorm.DB {
+	return instance.gormDB.Raw(query, values...)
+}
+
+// Exec ...
+func Exec(query string, values ...any) error {
+	return instance.gormDB.Exec(query, values...).Error
+}
+
+// Transact ...
+func Transact(fn ...func(tx *gorm.DB) error) error {
+	err := instance.gormDB.Transaction(func(db *gorm.DB) error {
+		for _, f := range fn {
+			if err := f(db); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	return err
+}
+
+// TransactWithCtx ...
+func TransactWithCtx(ctx context.Context, fn ...func(tx *gorm.DB) error) error {
+	err := instance.gormDB.WithContext(ctx).Transaction(func(db *gorm.DB) error {
+		for _, f := range fn {
+			if err := f(db); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	return err
 }

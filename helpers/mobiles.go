@@ -3,40 +3,36 @@ package helpers
 import (
 	"crypto/sha256"
 	"fmt"
-	"slices"
 	"strings"
+	"unicode"
 
 	"github.com/ochom/gutils/logs"
 )
 
 // ParseMobile  parses phone number to 254 format
-func ParseMobile(mobile string) string {
-	// replace all non-digit characters
-	mobile = strings.Map(func(r rune) rune {
-		if slices.Contains([]rune("0123456789"), r) {
-			return r
+func ParseMobile(mobile string) (string, bool) {
+	var digits []rune
+	for _, r := range mobile {
+		if unicode.IsDigit(r) {
+			digits = append(digits, r)
 		}
+	}
+	cleaned := string(digits)
 
-		return -1
-	}, mobile)
-
-	// remove leading zeros
-	mobile = strings.TrimLeft(mobile, "0")
-
-	// remove leading 254
-	mobile = strings.TrimPrefix(mobile, "254")
-
-	// check if remaining mobile is 9 digits
-	if len(mobile) != 9 {
-		return ""
+	switch {
+	case strings.HasPrefix(cleaned, "254"):
+		if len(cleaned) == 12 && (cleaned[3] == '7' || cleaned[3] == '1') {
+			return cleaned, true
+		}
+	case strings.HasPrefix(cleaned, "07") || strings.HasPrefix(cleaned, "01"):
+		if len(cleaned) == 10 {
+			return "254" + cleaned[1:], true
+		}
+	case len(cleaned) == 9 && (cleaned[0] == '7' || cleaned[0] == '1'):
+		return "254" + cleaned, true
 	}
 
-	// check if mobile starts with 7 or 1
-	if mobile[0] != '7' && mobile[0] != '1' {
-		return ""
-	}
-
-	return "254" + mobile
+	return "", false
 }
 
 // HashPhone hashes phone number to sha256 hash

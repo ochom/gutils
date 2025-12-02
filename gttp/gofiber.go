@@ -1,7 +1,6 @@
 package gttp
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -23,71 +22,60 @@ func (c *fiberClient) get(url string, headers M, timeouts ...time.Duration) (res
 }
 
 // sendRequest sends a request to the specified URL.
-func (c *fiberClient) sendRequest(url, method string, headers M, body []byte, timeouts ...time.Duration) (resp *Response, err error) {
+func (c *fiberClient) sendRequest(url, method string, headers M, body []byte, timeouts ...time.Duration) (*Response, error) {
 	timeout := time.Hour
 	if len(timeouts) > 0 {
 		timeout = timeouts[0]
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	result := make(chan *Response, 1)
-	go func() {
-		resp := c.makeRequest(url, method, headers, body)
-		result <- resp
-	}()
-
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case r := <-result:
-		if len(r.Errors) == 0 {
-			return r, nil
-		}
-
-		errStrings := []string{}
-		for _, err := range r.Errors {
-			errStrings = append(errStrings, err.Error())
-		}
-
-		return r, errors.New(strings.Join(errStrings, ", "))
+	resp := c.makeRequest(url, method, headers, body, timeout)
+	if len(resp.Errors) == 0 {
+		return resp, nil
 	}
+
+	errStrings := []string{}
+	for _, err := range resp.Errors {
+		errStrings = append(errStrings, err.Error())
+	}
+
+	return resp, errors.New(strings.Join(errStrings, ", "))
 }
 
 // makeRequest sends a request to the specified URL.
-func (c *fiberClient) makeRequest(url, method string, headers M, body []byte) (resp *Response) {
-	client := fiber.AcquireClient()
-	var req *fiber.Agent
-
+func (c *fiberClient) makeRequest(url, method string, headers M, body []byte, timeout time.Duration) *Response {
+	var agent *fiber.Agent
 	switch method {
 	case "POST":
-		req = client.Post(url)
+		agent = fiber.Post(url)
 	case "GET":
-		req = client.Get(url)
+		agent = fiber.Get(url)
 	case "DELETE":
-		req = client.Delete(url)
+		agent = fiber.Delete(url)
 	case "PUT":
-		req = client.Put(url)
+		agent = fiber.Put(url)
 	case "PATCH":
-		req = client.Patch(url)
+		agent = fiber.Patch(url)
 	default:
 		err := fmt.Errorf("unknown method: %s", method)
 		return NewResponse(500, []error{err}, nil)
 	}
 
 	// skip ssl verification
-	req.InsecureSkipVerify()
+	agent.InsecureSkipVerify()
+	agent.Timeout(timeout)
 
+	// add request headers
 	for k, v := range headers {
-		req.Add(k, v)
+		agent.Add(k, v)
 	}
 
+	// add request body
 	if method == "POST" || method == "PUT" || method == "PATCH" {
-		req.Body(body)
+		agent.Body(body)
 	}
 
-	code, content, errs := req.Bytes()
+	// make request
+	code, content, errs := agent.Bytes()
 	if code == 0 {
 		code = 500
 	}

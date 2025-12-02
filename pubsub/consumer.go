@@ -10,7 +10,9 @@ import (
 type consumer struct {
 	connectionName string
 	url            string
+	exchange       string
 	queue          string
+	routingKey     string
 
 	// basic
 	durable          bool
@@ -22,6 +24,16 @@ type consumer struct {
 	exclusive bool
 	noLocal   bool
 	noWait    bool
+}
+
+// SetExchangeName implements Consumer.
+func (c *consumer) SetExchangeName(exchangeName string) {
+	c.exchange = exchangeName
+}
+
+// SetRoutingKey implements Consumer.
+func (c *consumer) SetRoutingKey(routingKey string) {
+	c.routingKey = routingKey
 }
 
 // SetConnectionName implements Consumer.
@@ -106,6 +118,11 @@ func (c *consumer) Consume(workerFunc func([]byte)) error {
 	)
 	if err != nil {
 		return fmt.Errorf("queue Declare: %s", err.Error())
+	}
+
+	err = bindQueue(ch, c.exchange, q.Name, c.routingKey)
+	if err != nil {
+		return fmt.Errorf("queue Bind: %s", err.Error())
 	}
 
 	deliveries, err := ch.Consume(
