@@ -15,6 +15,12 @@ func Update[T any](data *T) error {
 	return instance.gormDB.Save(data).Error
 }
 
+// UpdateOne ...
+func UpdateOne[T any](scope func(db *gorm.DB) *gorm.DB, updates map[string]any) error {
+	var model T
+	return instance.gormDB.Model(&model).Scopes(scope).Updates(updates).Error
+}
+
 // Delete ...
 func Delete[T any](scopes ...func(db *gorm.DB) *gorm.DB) error {
 	return instance.gormDB.Scopes(scopes...).Delete(new(T)).Error
