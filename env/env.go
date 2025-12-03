@@ -8,61 +8,65 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 
-// Get returns env variable or the provided default value when variable not found
-func Get(name string, defaults ...string) string {
-	defaultValue := ""
+func defaultValue[T any](defaults ...T) T {
 	if len(defaults) > 0 {
-		defaultValue = defaults[0]
+		return defaults[0]
 	}
 
+	var zero T
+	return zero
+}
+
+// Get returns env variable or the provided default value when variable not found
+func Get(name string, defaults ...string) string {
 	value, ok := os.LookupEnv(name)
 	if !ok {
-		return defaultValue
+		return defaultValue(defaults...)
 	}
 
 	return value
 }
 
 // Int returns an integer from env variable or the provided default value when variable not found
-func Int(name string, defaultValue int) int {
+func Int(name string, defaults ...int) int {
 	value, ok := os.LookupEnv(name)
 	if !ok {
-		return defaultValue
+		return defaultValue(defaults...)
 	}
 
 	val, err := strconv.Atoi(value)
 	if err != nil {
-		return defaultValue
+		return defaultValue(defaults...)
 	}
 
 	return val
 }
 
 // Bool returns a boolean from env variable or the provided default value when variable not found
-func Bool(name string, defaultValue bool) bool {
+func Bool(name string, defaults ...bool) bool {
 	value, ok := os.LookupEnv(name)
 	if !ok {
-		return defaultValue
+		return defaultValue(defaults...)
 	}
 
 	val, err := strconv.ParseBool(value)
 	if err != nil {
-		return defaultValue
+		return defaultValue(defaults...)
 	}
 
 	return val
 }
 
 // Float returns a float from env variable or the provided default value when variable not found
-func Float(name string, defaultValue float64) float64 {
+func Float(name string, defaults ...float64) float64 {
 	value, ok := os.LookupEnv(name)
 	if !ok {
-		return defaultValue
+		return defaultValue(defaults...)
 	}
 
 	val, err := strconv.ParseFloat(value, 64)
 	if err != nil {
-		return defaultValue
+		return defaultValue(defaults...)
 	}
 
 	return val
