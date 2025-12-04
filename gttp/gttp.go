@@ -6,13 +6,6 @@ import (
 	"github.com/ochom/gutils/env"
 )
 
-type ClientType int
-
-const (
-	DefaultHttp = iota
-	GoFiber
-)
-
 type Client interface {
 	post(url string, headers M, body []byte, timeout ...time.Duration) (resp *Response, err error)
 	get(url string, headers M, timeout ...time.Duration) (resp *Response, err error)
@@ -22,13 +15,13 @@ type Client interface {
 var client Client
 
 func init() {
-	switch env.Int("HTTP_CLIENT", 1) {
-	case DefaultHttp:
+	switch env.Get("HTTP_CLIENT", "fiber") {
+	case "default":
 		client = new(defaultClient)
-	case GoFiber:
+	case "fiber":
 		client = new(fiberClient)
 	default:
-		panic("unknown http client")
+		client = new(fiberClient)
 	}
 }
 

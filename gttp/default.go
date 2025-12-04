@@ -54,7 +54,9 @@ func (c *defaultClient) sendRequest(url, method string, headers M, body []byte, 
 		return
 	}
 
-	defer res.Body.Close()
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	content, err := io.ReadAll(res.Body)
 	if err != nil {

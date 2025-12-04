@@ -19,13 +19,13 @@ var conn Cache
 
 // default to memory cache
 func init() {
-	switch env.Int("CACHE_DRIVER", 0) {
-	case Memory:
+	switch env.Get("CACHE_DRIVER", "redis") {
+	case "memory":
 		conn = newMemoryCache()
-	case Redis:
+	case "redis":
 		conn = newRedisCache()
 	default:
-		panic("unknown cache driver")
+		conn = newRedisCache()
 	}
 
 }
