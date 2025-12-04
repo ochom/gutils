@@ -21,6 +21,7 @@ func newRedisCache() Cache {
 	url := ""
 	if host != "" && port != "" {
 		url = host + ":" + port
+		goto initRedis
 	}
 
 	if url == "" {
@@ -32,6 +33,7 @@ func newRedisCache() Cache {
 		return newMemoryCache()
 	}
 
+initRedis:
 	cl := redis.NewClient(&redis.Options{
 		Addr:     url,
 		Password: env.Get("REDIS_PASSWORD"),
