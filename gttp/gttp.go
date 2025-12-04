@@ -21,7 +21,7 @@ func init() {
 	case "fiber":
 		client = new(fiberClient)
 	default:
-		panic("unknown http client")
+		client = new(fiberClient)
 	}
 }
 

@@ -25,7 +25,7 @@ func init() {
 	case "redis":
 		conn = newRedisCache()
 	default:
-		panic("unknown cache driver")
+		conn = newRedisCache()
 	}
 
 }
