@@ -33,7 +33,7 @@ func newRedisCache() Cache {
 	}
 
 	cl := redis.NewClient(&redis.Options{
-		Addr:     host,
+		Addr:     url,
 		Password: env.Get("REDIS_PASSWORD"),
 		DB:       env.Int("REDIS_DB_INDEX"),
 	})
