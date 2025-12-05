@@ -87,7 +87,7 @@ func NewConsumer(rabbitURL, queueName string) Consumer {
 }
 
 // Consume consume messages from the channels
-func (c *consumer) Consume(workerFunc func([]byte)) error {
+func (c *consumer) Consume(workerFunc func(amqp.Delivery)) error {
 	cfg := amqp.Config{
 		Properties: amqp.Table{
 			"connection_name": c.connectionName,
@@ -99,14 +99,18 @@ func (c *consumer) Consume(workerFunc func([]byte)) error {
 		return fmt.Errorf("failed to connect to RabbitMQ: %s", err.Error())
 	}
 
-	defer conn.Close()
+	defer func() {
+		_ = conn.Close()
+	}()
 
 	ch, err := conn.Channel()
 	if err != nil {
 		return fmt.Errorf("failed to open a channel: %s", err.Error())
 	}
 
-	defer ch.Close()
+	defer func() {
+		_ = ch.Close()
+	}()
 
 	q, err := ch.QueueDeclare(
 		c.queue,            // name
@@ -140,7 +144,7 @@ func (c *consumer) Consume(workerFunc func([]byte)) error {
 	}
 
 	for message := range deliveries {
-		workerFunc(message.Body)
+		workerFunc(message)
 	}
 
 	return nil

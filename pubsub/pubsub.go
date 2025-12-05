@@ -38,7 +38,7 @@ type Consumer interface {
 	SetExclusive(bool)
 	SetNoLocal(bool)
 	SetNoWait(bool)
-	Consume(func([]byte)) error
+	Consume(func(amqp.Delivery)) error
 }
 
 // declare create exchange and queue
