@@ -75,7 +75,9 @@ func (p *publisher) publish(body []byte, delay time.Duration) error {
 		return fmt.Errorf("failed to connect to RabbitMQ: %s", err.Error())
 	}
 
-	defer conn.Close()
+	defer func() {
+		_ = conn.Close()
+	}()
 
 	channel, err := conn.Channel()
 	if err != nil {
