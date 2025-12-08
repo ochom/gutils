@@ -107,6 +107,7 @@ func createInstance(config *Config) (gormDB *gorm.DB, sqlDB *sql.DB, err error) 
 func getGormConfig(config *Config) *gorm.Config {
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags),
+
 		logger.Config{
 			SlowThreshold:             200 * time.Millisecond,
 			LogLevel:                  config.LogLevel,
@@ -117,7 +118,7 @@ func getGormConfig(config *Config) *gorm.Config {
 	return &gorm.Config{
 		Logger:                 newLogger,
 		SkipDefaultTransaction: config.SkipDefaultTransaction,
-		PrepareStmt:            true,
+		PrepareStmt:            config.PreparedStatements,
 	}
 }
 
