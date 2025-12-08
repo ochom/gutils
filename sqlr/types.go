@@ -16,6 +16,7 @@ type Config struct {
 	MaxConnIdleTime           time.Duration
 	MaxConnLifeTime           time.Duration
 	SkipDefaultTransaction    bool
+	PreparedStatements        bool
 }
 
 // defaultConfig ...
