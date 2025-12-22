@@ -148,3 +148,8 @@ func TransactWithCtx(ctx context.Context, fn ...func(tx *gorm.DB) error) error {
 
 	return err
 }
+
+// Migrate ...
+func Migrate(models ...any) error {
+	return instance.gormDB.AutoMigrate(models...)
+}
