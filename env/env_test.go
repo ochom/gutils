@@ -84,7 +84,7 @@ func TestInt(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := env.Int(tt.args.key, tt.args.defaultValue); got != tt.want {
+			if got := env.Get(tt.args.key, tt.args.defaultValue); got != tt.want {
 				t.Errorf("Int() = %v, want %v", got, tt.want)
 			}
 		})
@@ -140,7 +140,7 @@ func TestBool(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := env.Bool(tt.args.key, tt.args.defaultValue); got != tt.want {
+			if got := env.Get(tt.args.key, tt.args.defaultValue); got != tt.want {
 				t.Errorf("Bool() = %v, want %v", got, tt.want)
 			}
 		})
@@ -187,7 +187,7 @@ func TestFloat(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := env.Float(tt.args.key, tt.args.defaultValue); got != tt.want {
+			if got := env.Get(tt.args.key, tt.args.defaultValue); got != tt.want {
 				t.Errorf("Float() = %v, want %v", got, tt.want)
 			}
 		})
