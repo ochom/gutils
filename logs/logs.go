@@ -53,6 +53,10 @@ func InitLogger(config ...Config) {
 		cfg = defaultConfig
 	}
 
+	if cfg.DefaultLogger == nil {
+		cfg.DefaultLogger = log.New(os.Stdout, "", log.LstdFlags)
+	}
+
 	logger = &cfg
 }
 
