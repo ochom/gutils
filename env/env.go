@@ -19,7 +19,7 @@ func defaultValue[T any](defaults ...T) T {
 }
 
 type Env interface {
-	string | bool | int | float64
+	string | bool | int | int64 | float64
 }
 
 // Get returns env variable or the provided default value when variable not found
@@ -65,4 +65,24 @@ func MustGet[T Env](name string) T {
 	}
 
 	return envVal
+}
+
+// Int get int64 env variable or the provided default value when variable not found
+func Int(name string, defaults ...int) int {
+	return Get(name, defaults...)
+}
+
+// Float get float64 env variable or the provided default value when variable not found
+func Float(name string, defaults ...float64) float64 {
+	return Get(name, defaults...)
+}
+
+// String get string env variable or the provided default value when variable not found
+func String(name string, defaults ...string) string {
+	return Get(name, defaults...)
+}
+
+// Bool get bool env variable or the provided default value when variable not found
+func Bool(name string, defaults ...bool) bool {
+	return Get(name, defaults...)
 }
