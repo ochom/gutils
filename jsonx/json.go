@@ -32,6 +32,16 @@ func Encode(payload any) byteData {
 	return bytesPayload
 }
 
+// EncodeErr encodes the given payload into JSON format in byte slice and returns error if any
+func EncodeErr(payload any) (byteData, error) {
+	bytesPayload, err := baseJSON.Marshal(&payload)
+	if err != nil {
+		return nil, err
+	}
+
+	return bytesPayload, nil
+}
+
 // Decode decodes JSON payload into the specified type
 func Decode[T any](payload []byte) T {
 	var data T
@@ -41,4 +51,14 @@ func Decode[T any](payload []byte) T {
 	}
 
 	return data
+}
+
+// DecodeErr decodes JSON payload into the specified type and returns error if any
+func DecodeErr[T any](payload []byte) (T, error) {
+	var data T
+	if err := baseJSON.Unmarshal(payload, &data); err != nil {
+		return data, err
+	}
+
+	return data, nil
 }

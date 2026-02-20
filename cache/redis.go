@@ -15,8 +15,8 @@ type redisCache struct {
 }
 
 func newRedisCache() Cache {
-	host := env.Get("REDIS_HOST")
-	port := env.Get("REDIS_PORT")
+	host := env.Get[string]("REDIS_HOST")
+	port := env.Get[string]("REDIS_PORT")
 
 	url := ""
 	if host != "" && port != "" {
@@ -25,7 +25,7 @@ func newRedisCache() Cache {
 	}
 
 	if url == "" {
-		url = env.Get("REDIS_URL")
+		url = env.Get[string]("REDIS_URL")
 	}
 
 	if url == "" {
@@ -36,8 +36,8 @@ func newRedisCache() Cache {
 initRedis:
 	cl := redis.NewClient(&redis.Options{
 		Addr:     url,
-		Password: env.Get("REDIS_PASSWORD"),
-		DB:       env.Int("REDIS_DB_INDEX"),
+		Password: env.Get[string]("REDIS_PASSWORD"),
+		DB:       env.Get("REDIS_DB_INDEX", 0),
 	})
 
 	if err := cl.Ping(context.Background()).Err(); err != nil {

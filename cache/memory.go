@@ -18,7 +18,7 @@ type memoryCache struct {
 
 func newMemoryCache() Cache {
 	c := &memoryCache{
-		cacheWorkers: env.Int("CACHE_TOTAL_WORKERS", 10),
+		cacheWorkers: env.Get("CACHE_TOTAL_WORKERS", 10),
 		items:        make(map[string]cacheItem),
 		mut:          sync.Mutex{},
 	}

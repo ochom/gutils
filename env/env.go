@@ -3,6 +3,7 @@ package env
 import (
 	"fmt"
 	"os"
+	"reflect"
 	"strconv"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -17,112 +18,71 @@ func defaultValue[T any](defaults ...T) T {
 	return zero
 }
 
+type Env interface {
+	string | bool | int | int64 | float64
+}
+
 // Get returns env variable or the provided default value when variable not found
-func Get(name string, defaults ...string) string {
+func Get[T Env](name string, defaults ...T) T {
 	value, ok := os.LookupEnv(name)
-	if !ok {
-		return defaultValue(defaults...)
+	if !ok && len(defaults) > 0 {
+		return defaults[0]
 	}
 
-	return value
-}
-
-// Int returns an integer from env variable or the provided default value when variable not found
-func Int(name string, defaults ...int) int {
-	value, ok := os.LookupEnv(name)
-	if !ok {
-		return defaultValue(defaults...)
+	var zero T
+	kind := reflect.TypeOf(zero).Kind()
+	switch kind {
+	case reflect.String:
+		return any(value).(T)
+	case reflect.Bool:
+		val, err := strconv.ParseBool(value)
+		if err != nil {
+			return defaultValue(defaults...)
+		}
+		return any(val).(T)
+	case reflect.Int:
+		val, err := strconv.Atoi(value)
+		if err != nil {
+			return defaultValue(defaults...)
+		}
+		return any(val).(T)
+	case reflect.Float64:
+		val, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			return defaultValue(defaults...)
+		}
+		return any(val).(T)
+	default:
+		panic(fmt.Errorf("unsupported type: %s", kind))
 	}
-
-	val, err := strconv.Atoi(value)
-	if err != nil {
-		return defaultValue(defaults...)
-	}
-
-	return val
-}
-
-// Bool returns a boolean from env variable or the provided default value when variable not found
-func Bool(name string, defaults ...bool) bool {
-	value, ok := os.LookupEnv(name)
-	if !ok {
-		return defaultValue(defaults...)
-	}
-
-	val, err := strconv.ParseBool(value)
-	if err != nil {
-		return defaultValue(defaults...)
-	}
-
-	return val
-}
-
-// Float returns a float from env variable or the provided default value when variable not found
-func Float(name string, defaults ...float64) float64 {
-	value, ok := os.LookupEnv(name)
-	if !ok {
-		return defaultValue(defaults...)
-	}
-
-	val, err := strconv.ParseFloat(value, 64)
-	if err != nil {
-		return defaultValue(defaults...)
-	}
-
-	return val
 }
 
 // MustGet returns env variable or panics when variable not found
-func MustGet(name string) string {
-	value, ok := os.LookupEnv(name)
-	if !ok {
+func MustGet[T Env](name string) T {
+	envVal := Get[T](name)
+	if reflect.DeepEqual(envVal, defaultValue[T]()) {
 		panic(fmt.Errorf("MustGet Env: %s not found", name))
 	}
 
-	return value
+	return envVal
 }
 
-// MustInt returns an integer from env variable or panics when variable not found
-func MustInt(name string) int {
-	value, ok := os.LookupEnv(name)
-	if !ok {
-		panic(fmt.Errorf("MustInt Env: %s not found", name))
-	}
-
-	val, err := strconv.Atoi(value)
-	if err != nil {
-		panic(fmt.Errorf("MustInt Env: %s not an integer", name))
-	}
-
-	return val
+// Int get int64 env variable or the provided default value when variable not found
+func Int(name string, defaults ...int) int {
+	return Get(name, defaults...)
 }
 
-// MustBool returns a boolean from env variable or panics when variable not found
-func MustBool(name string) bool {
-	value, ok := os.LookupEnv(name)
-	if !ok {
-		panic(fmt.Errorf("MustBool Env: %s not found", name))
-	}
-
-	val, err := strconv.ParseBool(value)
-	if err != nil {
-		panic(fmt.Errorf("MustBool Env: %s not a boolean", name))
-	}
-
-	return val
+// Float get float64 env variable or the provided default value when variable not found
+func Float(name string, defaults ...float64) float64 {
+	return Get(name, defaults...)
 }
 
-// MustFloat returns a float from env variable or panics when variable not found
-func MustFloat(name string) float64 {
-	value, ok := os.LookupEnv(name)
-	if !ok {
-		panic(fmt.Errorf("MustFloat Env: %s not found", name))
-	}
+// String get string env variable or the provided default value when variable not found
+func String(name string, defaults ...string) string {
+	return Get(name, defaults...)
+}
 
-	val, err := strconv.ParseFloat(value, 64)
-	if err != nil {
-		panic(fmt.Errorf("MustFloat Env: %s not a float", name))
-	}
-
-	return val
+// Bool get bool env variable or the provided default value when variable not found
+func Bool(name string, defaults ...bool) bool {
+	return Get(name, defaults...)
 }

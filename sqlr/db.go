@@ -93,7 +93,10 @@ func parseConfig(configs ...*Config) *Config {
 
 func createInstance(config *Config) (gormDB *gorm.DB, sqlDB *sql.DB, err error) {
 	if strings.HasPrefix(config.Url, "postgres") {
-		return createPool(postgres.Open(config.Url), config)
+		return createPool(postgres.New(postgres.Config{
+			DSN:                  config.Url,
+			PreferSimpleProtocol: config.PreparedStatements,
+		}), config)
 	}
 
 	if strings.HasPrefix(config.Url, "mysql") {

@@ -18,7 +18,7 @@ type Vault struct {
 
 // NewVault creates a new Vault with the given key
 func NewVault(keys ...string) (*Vault, error) {
-	key := env.Get("VAULT_KEY")
+	key := env.Get[string]("VAULT_KEY")
 
 	if len(keys) > 0 && keys[0] != "" {
 		key = keys[0]
