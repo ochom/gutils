@@ -9,9 +9,12 @@ import (
 	"time"
 )
 
+// defaultClient implements the Client interface using Go's standard net/http package.
+// It provides a basic HTTP client with TLS verification disabled by default.
 type defaultClient struct{}
 
-// getClient ...
+// getClient returns a configured http.Client with keep-alives disabled
+// and TLS certificate verification skipped.
 func (*defaultClient) getClient() *http.Client {
 	client := &http.Client{
 		Transport: &http.Transport{

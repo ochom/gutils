@@ -9,11 +9,23 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// redisCache implements Cache
+// redisCache implements the Cache interface using Redis as the backend.
+// It provides distributed caching suitable for multi-instance deployments.
+//
+// Configuration is read from environment variables:
+//   - REDIS_HOST: Redis server hostname
+//   - REDIS_PORT: Redis server port
+//   - REDIS_URL: Full Redis URL (alternative to HOST:PORT)
+//   - REDIS_PASSWORD: Authentication password
+//   - REDIS_DB_INDEX: Database index (default: 0)
+//
+// If Redis connection fails, it automatically falls back to memory cache.
 type redisCache struct {
 	client *redis.Client
 }
 
+// newRedisCache creates a new Redis cache instance.
+// Falls back to memory cache if Redis is unavailable.
 func newRedisCache() Cache {
 	host := env.Get[string]("REDIS_HOST")
 	port := env.Get[string]("REDIS_PORT")

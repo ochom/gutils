@@ -50,11 +50,13 @@ func main() {
 Generic GORM wrapper supporting PostgreSQL, MySQL, and SQLite with type-safe CRUD operations.
 
 #### Installation
+
 ```go
 import "github.com/ochom/gutils/sqlr"
 ```
 
 #### Configuration
+
 ```go
 config := sqlr.Config{
     Url:      "postgresql://user:pass@localhost:5432/db",
@@ -69,6 +71,7 @@ sqlr.Init(config)
 ```
 
 #### Usage Examples
+
 ```go
 type User struct {
     ID    uint   `gorm:"primaryKey"`
@@ -114,16 +117,19 @@ users, _ := sqlr.FindWithLimit[User](db, 1, 20) // page 1, 20 per page
 Generic MongoDB operations with automatic collection naming.
 
 #### Installation
+
 ```go
 import "github.com/ochom/gutils/nosql"
 ```
 
 #### Configuration
+
 ```go
 nosql.Init("mongodb://localhost:27017", "mydb")
 ```
 
 #### Usage Examples
+
 ```go
 type Product struct {
     ID    string `bson:"_id"`
@@ -162,18 +168,22 @@ nosql.DeleteByID[Product]("product-id")
 Pluggable caching with in-memory and Redis support.
 
 #### Installation
+
 ```go
 import "github.com/ochom/gutils/cache"
 ```
 
 #### Configuration
+
 Set environment variable:
+
 ```bash
 CACHE_DRIVER=0  # 0 = Memory, 1 = Redis
 REDIS_URL=redis://localhost:6379  # Required if using Redis
 ```
 
 #### Usage Examples
+
 ```go
 import "time"
 
@@ -197,17 +207,21 @@ client := cache.Client()
 Generate and validate JWT tokens for authentication.
 
 #### Installation
+
 ```go
 import "github.com/ochom/gutils/auth"
 ```
 
 #### Configuration
+
 Set environment variable:
+
 ```bash
 JWT_SECRET=your-secret-key
 ```
 
 #### Usage Examples
+
 ```go
 // Generate tokens
 userData := map[string]string{
@@ -238,16 +252,19 @@ role := claims["role"]
 Unified HTTP client interface with multiple backends.
 
 #### Installation
+
 ```go
 import "github.com/ochom/gutils/gttp"
 ```
 
 #### Configuration
+
 ```bash
 HTTP_CLIENT=0  # 0 = Default Go HTTP, 1 = GoFiber
 ```
 
 #### Usage Examples
+
 ```go
 // GET request
 headers := gttp.M{"Authorization": "Bearer token"}
@@ -286,11 +303,13 @@ response := gttp.SendRequest(
 Publish/subscribe messaging with delayed message support.
 
 #### Installation
+
 ```go
 import "github.com/ochom/gutils/pubsub"
 ```
 
 #### Publisher Example
+
 ```go
 publisher := pubsub.NewPublisher(
     "amqp://guest:guest@localhost:5672/",
@@ -310,6 +329,7 @@ publisher.PublishWithDelay(message, 5*time.Minute)
 ```
 
 #### Consumer Example
+
 ```go
 consumer := pubsub.NewConsumer(
     "amqp://guest:guest@localhost:5672/",
@@ -330,11 +350,13 @@ consumer.Consume(func(body []byte) {
 Framework for building USSD menu-driven applications.
 
 #### Installation
+
 ```go
 import "github.com/ochom/gutils/ussd"
 ```
 
 #### Usage Example
+
 ```go
 // Define root menu
 rootMenu := ussd.NewStep("Welcome to MyApp\n1. Check Balance\n2. Send Money\n3. Exit")
@@ -374,11 +396,13 @@ response := parser.Parse(params)
 Type-safe environment variable access with defaults.
 
 #### Installation
+
 ```go
 import "github.com/ochom/gutils/env"
 ```
 
 #### Usage Examples
+
 ```go
 // With defaults (safe)
 dbHost := env.Get("DB_HOST", "localhost")
@@ -397,11 +421,13 @@ enableCache := env.MustBool("ENABLE_CACHE")
 Color-coded logging with file/line information.
 
 #### Installation
+
 ```go
 import "github.com/ochom/gutils/logs"
 ```
 
 #### Usage Examples
+
 ```go
 logs.Debug("User input: %v", userInput)          // Blue
 logs.Info("Server started on port %d", 8080)     // Green
@@ -419,11 +445,13 @@ logs.SetOutput(file)
 Structured errors with HTTP status codes.
 
 #### Installation
+
 ```go
 import "github.com/ochom/gutils/errors"
 ```
 
 #### Usage Examples
+
 ```go
 // Create errors with status codes
 err := errors.NotFound("User with id %d not found", userID)
@@ -447,11 +475,13 @@ if err != nil {
 Generate MongoDB-style object IDs.
 
 #### Installation
+
 ```go
 import "github.com/ochom/gutils/uuid"
 ```
 
 #### Usage Example
+
 ```go
 id := uuid.New()  // Returns hex string like "507f1f77bcf86cd799439011"
 
@@ -466,11 +496,13 @@ user := User{
 Compress and convert images to JPEG format.
 
 #### Installation
+
 ```go
 import "github.com/ochom/gutils/images"
 ```
 
 #### Usage Example
+
 ```go
 // Read image file
 imageData, _ := ioutil.ReadFile("photo.png")
@@ -490,11 +522,13 @@ ioutil.WriteFile(newFilename, compressedData, 0644)
 JavaScript-style array operations using Go generics.
 
 #### Installation
+
 ```go
 import "github.com/ochom/gutils/arrays"
 ```
 
 #### Usage Examples
+
 ```go
 numbers := []int{1, 2, 3, 4, 5, 6}
 
@@ -532,11 +566,13 @@ arrays.ForEach(numbers, func(n int) {
 Collection of helper functions for common tasks.
 
 #### Installation
+
 ```go
 import "github.com/ochom/gutils/helpers"
 ```
 
 #### Usage Examples
+
 ```go
 // Password hashing
 hash, _ := helpers.HashPassword("mypassword")
@@ -629,6 +665,7 @@ Contributions are welcome! Please follow these steps:
 5. Open a Pull Request
 
 Please ensure:
+
 - All tests pass
 - Code follows Go conventions
 - New features include tests and documentation
@@ -644,7 +681,7 @@ Please ensure:
 
 ## License
 
-[Add your license here]
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ## Support
 

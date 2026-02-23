@@ -11,12 +11,41 @@ import (
 	"github.com/ochom/gutils/env"
 )
 
-// Vault
+// Vault provides AES-GCM encryption and decryption functionality.
+//
+// Vault uses a 32-byte key for AES-256 encryption with GCM (Galois/Counter Mode)
+// for authenticated encryption.
 type Vault struct {
 	key string
 }
 
-// NewVault creates a new Vault with the given key
+// NewVault creates a new Vault instance with the provided encryption key.
+//
+// If no key is provided, it attempts to read the key from the VAULT_KEY environment variable.
+// The key must be exactly 32 bytes long for AES-256 encryption.
+//
+// Example:
+//
+//	// Using environment variable VAULT_KEY
+//	vault, err := auth.NewVault()
+//	if err != nil {
+//		log.Fatal("Failed to create vault:", err)
+//	}
+//
+//	// Using explicit key (must be 32 bytes)
+//	key := "your-32-character-secret-key!!" // exactly 32 bytes
+//	vault, err := auth.NewVault(key)
+//	if err != nil {
+//		log.Fatal("Invalid key length")
+//	}
+//
+//	// Encrypt sensitive data
+//	encrypted, _ := vault.Encrypt("secret password")
+//	fmt.Println("Encrypted:", encrypted)
+//
+//	// Decrypt data
+//	decrypted, _ := vault.Decrypt(encrypted)
+//	fmt.Println("Decrypted:", decrypted)
 func NewVault(keys ...string) (*Vault, error) {
 	key := env.Get[string]("VAULT_KEY")
 
@@ -31,7 +60,25 @@ func NewVault(keys ...string) (*Vault, error) {
 	return &Vault{key: key}, nil
 }
 
-// Encrypt text using AES-GCM
+// Encrypt encrypts plaintext using AES-GCM and returns a base64-encoded string.
+//
+// The function generates a random nonce for each encryption, ensuring that
+// encrypting the same plaintext twice produces different ciphertexts.
+//
+// Example:
+//
+//	vault, _ := auth.NewVault("your-32-character-secret-key!!")
+//
+//	// Encrypt a password
+//	encrypted, err := vault.Encrypt("my-secret-password")
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//	fmt.Println("Store this:", encrypted)
+//
+//	// Encrypt JSON data
+//	jsonData := `{"api_key": "secret123"}`
+//	encryptedJSON, _ := vault.Encrypt(jsonData)
 func (v Vault) Encrypt(plaintext string) (string, error) {
 	block, err := aes.NewCipher([]byte(v.key))
 	if err != nil {
@@ -52,7 +99,22 @@ func (v Vault) Encrypt(plaintext string) (string, error) {
 	return base64.StdEncoding.EncodeToString(ciphertext), nil
 }
 
-// Decrypt text using AES-GCM
+// Decrypt decrypts a base64-encoded ciphertext that was produced by Encrypt.
+//
+// Returns the original plaintext or an error if decryption fails (e.g., wrong key,
+// corrupted data, or tampered ciphertext).
+//
+// Example:
+//
+//	vault, _ := auth.NewVault("your-32-character-secret-key!!")
+//
+//	// Decrypt previously encrypted data
+//	encrypted := "base64-encoded-ciphertext..."
+//	plaintext, err := vault.Decrypt(encrypted)
+//	if err != nil {
+//		log.Fatal("Decryption failed:", err)
+//	}
+//	fmt.Println("Original:", plaintext)
 func (v Vault) Decrypt(encryptedText string) (string, error) {
 	data, err := base64.StdEncoding.DecodeString(encryptedText)
 	if err != nil {

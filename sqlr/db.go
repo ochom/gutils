@@ -1,3 +1,48 @@
+// Package sqlr provides a GORM-based SQL database abstraction layer with generic CRUD operations.
+//
+// This package supports PostgreSQL, MySQL, and SQLite databases with automatic driver selection
+// based on the connection URL prefix. It provides both a global instance for simple use cases
+// and the ability to create multiple connections.
+//
+// Features:
+//   - Generic type-safe CRUD operations
+//   - Connection pooling with configurable limits
+//   - Flexible transaction support
+//   - Scoped queries using GORM's scope pattern
+//   - Automatic database migrations
+//
+// Example usage:
+//
+//	// Define your model
+//	type User struct {
+//		ID        uint   `gorm:\"primaryKey\"`
+//		Name      string `gorm:\"size:255\"`
+//		Email     string `gorm:\"unique\"`
+//		CreatedAt time.Time
+//	}
+//
+//	// Initialize the database
+//	err := sqlr.Init(&sqlr.Config{
+//		Url: \"postgres://user:pass@localhost:5432/mydb?sslmode=disable\",
+//	})
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//
+//	// Auto-migrate
+//	sqlr.Migrate(&User{})
+//
+//	// Create a user
+//	user := &User{Name: \"Alice\", Email: \"alice@example.com\"}
+//	sqlr.Create(user)
+//
+//	// Find by ID
+//	user, err := sqlr.FindOneById[User](1)
+//
+//	// Find with scopes
+//	users := sqlr.FindAll[User](func(db *gorm.DB) *gorm.DB {
+//		return db.Where(\"name LIKE ?\", \"A%\")
+//	})
 package sqlr
 
 import (
@@ -14,7 +59,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// internal db initialized by the New function
+// dbInstance holds the internal database connections.
 type dbInstance struct {
 	gormDB *gorm.DB
 	sqlDB  *sql.DB
@@ -22,17 +67,65 @@ type dbInstance struct {
 
 var instance = &dbInstance{}
 
-// GORM returns the gorm db instance
+// GORM returns the underlying GORM database instance for advanced operations.
+//
+// Example:
+//
+//	// Use for complex queries
+//	db := sqlr.GORM()
+//	db.Joins(\"JOIN orders ON orders.user_id = users.id\").
+//		Where(\"orders.total > ?\", 100).
+//		Find(&users)
+//
+//	// Use with raw SQL
+//	db.Raw(\"SELECT * FROM users WHERE age > ?\", 18).Scan(&users)
 func GORM() *gorm.DB {
 	return instance.gormDB
 }
 
-// SQL returns the sql db instance
+// SQL returns the underlying standard library sql.DB instance.
+// Useful for operations that require direct database/sql access.
+//
+// Example:
+//
+//	db := sqlr.SQL()
+//	err := db.Ping()
+//	stats := db.Stats()
 func SQL() *sql.DB {
 	return instance.sqlDB
 }
 
-// Init initializes the database db with GORM
+// Init initializes the global database connection.
+// Call this once at application startup before using other sqlr functions.
+//
+// The database driver is automatically selected based on the URL prefix:
+//   - postgres:// or postgresql:// -> PostgreSQL
+//   - mysql:// -> MySQL
+//   - file path or other -> SQLite
+//
+// Example:
+//
+//	// PostgreSQL
+//	err := sqlr.Init(&sqlr.Config{
+//		Url: \"postgres://user:pass@localhost:5432/mydb?sslmode=disable\",
+//	})
+//
+//	// MySQL
+//	err := sqlr.Init(&sqlr.Config{
+//		Url: \"mysql://user:pass@tcp(localhost:3306)/mydb\",
+//	})
+//
+//	// SQLite
+//	err := sqlr.Init(&sqlr.Config{
+//		Url: \"./data.db\",
+//	})
+//
+//	// With custom settings
+//	err := sqlr.Init(&sqlr.Config{
+//		Url:          \"postgres://...\",
+//		MaxOpenConns: 50,
+//		LogLevel:     logger.Warn,
+//	})
 func Init(configs ...*Config) (err error) {
 	config := parseConfig(configs...)
 	gormDB, sqlDB, err := createInstance(config)
@@ -45,7 +138,23 @@ func Init(configs ...*Config) (err error) {
 	return nil
 }
 
-// New Create connection create and returns a new connection
+// New creates and returns a new database connection without affecting the global instance.
+// Use this when you need multiple database connections or want to manage connections explicitly.
+//
+// Example:
+//
+//	// Create a separate connection
+//	gormDB, sqlDB, err := sqlr.New(&sqlr.Config{
+//		Url: \"postgres://user:pass@localhost:5432/analytics\",
+//	})
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//	defer sqlDB.Close()
+//
+//	// Use the connection
+//	var users []User
+//	gormDB.Find(&users)
 func New(cfg ...*Config) (*gorm.DB, *sql.DB, error) {
 	config := parseConfig(cfg...)
 	gormDB, sqlDB, err := createInstance(config)

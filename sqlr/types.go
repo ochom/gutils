@@ -6,20 +6,48 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// Database configuration
+// Config holds the database connection configuration options.
+//
+// Example:
+//
+//	config := &sqlr.Config{
+//		Url:          "postgres://user:pass@localhost:5432/mydb",
+//		LogLevel:     logger.Warn,
+//		MaxOpenConns: 50,
+//		MaxIdleConns: 10,
+//	}
+//	err := sqlr.Init(config)
 type Config struct {
-	Url                       string
-	LogLevel                  logger.LogLevel
+	// Url is the database connection string
+	// Supports: postgres://, mysql://, or SQLite file path
+	Url string
+
+	// LogLevel controls GORM's logging verbosity (Silent, Error, Warn, Info)
+	LogLevel logger.LogLevel
+
+	// IgnoreRecordNotFoundError suppresses "record not found" errors in logs
 	IgnoreRecordNotFoundError bool
-	MaxOpenConns              int
-	MaxIdleConns              int
-	MaxConnIdleTime           time.Duration
-	MaxConnLifeTime           time.Duration
-	SkipDefaultTransaction    bool
-	PreparedStatements        bool
+
+	// MaxOpenConns sets the maximum number of open connections to the database
+	MaxOpenConns int
+
+	// MaxIdleConns sets the maximum number of idle connections in the pool
+	MaxIdleConns int
+
+	// MaxConnIdleTime sets the maximum time a connection can be idle before closing
+	MaxConnIdleTime time.Duration
+
+	// MaxConnLifeTime sets the maximum lifetime of a connection
+	MaxConnLifeTime time.Duration
+
+	// SkipDefaultTransaction disables wrapping each operation in a transaction
+	SkipDefaultTransaction bool
+
+	// PreparedStatements enables prepared statement caching
+	PreparedStatements bool
 }
 
-// defaultConfig ...
+// defaultConfig provides sensible defaults for database connections.
 var defaultConfig = Config{
 	Url:                    "gorm.db",
 	LogLevel:               logger.Info,

@@ -9,20 +9,48 @@ import (
 	"github.com/ochom/gutils/logs"
 )
 
-// MenuFunc returns the menu function
+// MenuFunc is a function type that generates dynamic menu content.
+// It receives session parameters and returns the menu text to display.
+//
+// Example:
+//
+//	balanceMenu := ussd.NewStep(func(params map[string]string) string {
+//		phone := params["phone_number"]
+//		balance := getBalance(phone)
+//		return fmt.Sprintf("Your balance is: KES %s\\n0. Back to Menu", balance)
+//	})
 type MenuFunc func(params map[string]string) string
 
-// Step a ussd step
+// Step represents a single step/screen in the USSD menu flow.
+// Each step can have child steps for nested menus.
 type Step struct {
-	Run      MenuFunc
-	Menu     string
-	params   map[string]string
-	End      bool
-	key      string
+	// Run is a function that generates dynamic content (mutually exclusive with Menu)
+	Run MenuFunc
+	// Menu is static menu text (mutually exclusive with Run)
+	Menu string
+	// params contains session data passed to the step
+	params map[string]string
+	// End marks this as a terminal step (session will be cleared after response)
+	End bool
+	// key is the input that leads to this step
+	key string
+	// children are the sub-steps accessible from this step
 	children []*Step
 }
 
-// NewStep creates a new step
+// NewStep creates a new USSD menu step.
+// Accepts either a static string or a MenuFunc for dynamic content.
+//
+// Example:
+//
+//	// Static menu
+//	mainMenu := ussd.NewStep("Welcome!\\n1. Balance\\n2. Transfer")
+//
+//	// Dynamic menu with function
+//	balanceMenu := ussd.NewStep(func(params map[string]string) string {
+//		balance := checkBalance(params["phone_number"])
+//		return fmt.Sprintf("Your balance: KES %s", balance)
+//	})
 func NewStep[T string | MenuFunc](menu T) *Step {
 	step := &Step{
 		params: make(map[string]string),
@@ -38,13 +66,58 @@ func NewStep[T string | MenuFunc](menu T) *Step {
 	return step
 }
 
-// AddStep adds a new step
+// AddStep adds a child step accessible by the given key.
+// The key is the user input that will navigate to this step.
+//
+// Keys can be:
+//   - Exact match: "1", "2", "0"
+//   - Wildcard: "*" matches any input
+//   - Regex pattern: "[0-9]+" matches numeric input
+//
+// Example:
+//
+//	mainMenu := ussd.NewStep("Main Menu\n1. Balance\n2. Transfer")
+//
+//	// Exact match
+//	mainMenu.AddStep("1", balanceStep)
+//	mainMenu.AddStep("2", transferStep)
+//
+//	// Wildcard for "back" handling
+//	mainMenu.AddStep("0", backStep)
+//
+//	// Any input (for text input)
+//	inputStep := ussd.NewStep("Enter amount:")
+//	inputStep.AddStep("*", confirmationStep) // Matches any input
 func (s *Step) AddStep(key string, child *Step) {
 	child.key = key
 	s.children = append(s.children, child)
 }
 
-// GetResponse returns the response
+// GetResponse generates the USSD response string for this step.
+// Automatically prefixes with "CON " (continue) or "END " (terminate) based on the step's End flag.
+//
+// Response prefixes:
+//   - "CON ": User can continue interacting (session stays active)
+//   - "END ": Final message (session will be terminated)
+//
+// If the menu text already starts with "CON " or "END ", it's returned as-is.
+//
+// Example:
+//
+//	// Continuing step
+//	step := ussd.NewStep("Enter PIN:")
+//	step.GetResponse() // Returns: "CON Enter PIN:"
+//
+//	// Terminal step
+//	step := ussd.NewStep("Thank you!")
+//	step.End = true
+//	step.GetResponse() // Returns: "END Thank you!"
+//
+//	// Pre-formatted response
+//	step := ussd.NewStep(func(p map[string]string) string {
+//		return "END Your transaction is complete"
+//	})
+//	step.GetResponse() // Returns: "END Your transaction is complete"
 func (s *Step) GetResponse() string {
 	response := s.Menu
 	if s.Menu == "" {
@@ -68,7 +141,8 @@ func (s *Step) GetResponse() string {
 	return "CON " + response
 }
 
-// getMatchingChild returns the matching child
+// getMatchingChild finds a child step that matches the given input key.
+// First checks for exact matches, then falls back to regex pattern matching.
 func (s *Step) getMatchingChild(key string) *Step {
 	// get exact match
 	child := arrays.Find(s.children, func(child *Step) bool {
@@ -98,7 +172,8 @@ func (s *Step) getMatchingChild(key string) *Step {
 	return nil
 }
 
-// walk goes through the menu and finds matching children
+// walk traverses the menu tree based on the USSD input parts.
+// Returns the step that corresponds to the complete navigation path.
 func (s *Step) walk(ussdParts []string) *Step {
 	remainingPieces := len(ussdParts)
 
@@ -120,7 +195,7 @@ func (s *Step) walk(ussdParts []string) *Step {
 	return nil
 }
 
-// parse takes a ussd string and returns the right child
+// parse processes the USSD parts and returns the appropriate step with parameters.
 func (s *Step) parse(params map[string]string, ussdParts []string) *Step {
 	step := s.walk(ussdParts)
 	if step == nil {

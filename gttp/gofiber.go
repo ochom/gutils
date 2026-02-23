@@ -9,6 +9,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// fiberClient implements the Client interface using GoFiber's HTTP client.
+// It offers better performance for high-throughput scenarios compared to
+// the default net/http client.
 type fiberClient struct{}
 
 // post sends a POST request to the specified URL.

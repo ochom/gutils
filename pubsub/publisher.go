@@ -7,7 +7,7 @@ import (
 	"github.com/streadway/amqp"
 )
 
-// publisher ...
+// publisher implements the Publisher interface for RabbitMQ message publishing.
 type publisher struct {
 	connectionName string
 	url            string
@@ -17,7 +17,29 @@ type publisher struct {
 	routingKey     string
 }
 
-// NewPublisher  creates a new publisher to rabbit
+// NewPublisher creates a new publisher for sending messages to RabbitMQ.
+//
+// Parameters:
+//   - rabbitURL: AMQP connection URL (e.g., "amqp://guest:guest@localhost:5672/")
+//   - exchangeName: Name of the exchange to publish to
+//   - queueName: Name of the queue (used for declaring and binding)
+//
+// Example:
+//
+//	// Create a publisher
+//	publisher := pubsub.NewPublisher(
+//		"amqp://guest:guest@localhost:5672/",
+//		"orders",      // exchange
+//		"order-queue", // queue
+//	)
+//
+//	// Configure and publish
+//	publisher.SetRoutingKey("order.created")
+//	err := publisher.Publish(jsonx.Encode(order))
+//
+//	// Publish with delay
+//	publisher.SetExchangeType(pubsub.Delayed)
+//	err := publisher.PublishWithDelay(jsonx.Encode(reminder), 24*time.Hour)
 func NewPublisher(rabbitURL, exchangeName, queueName string) Publisher {
 	return &publisher{
 		url:          rabbitURL,
