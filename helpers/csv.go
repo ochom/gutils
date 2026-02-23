@@ -6,7 +6,34 @@ import (
 	"os"
 )
 
-// ParseCSV reads csv from io.Reader and returns a chan of slice of strings
+// ParseCSV reads CSV data from an io.Reader and returns a channel of string slices.
+// Each slice represents one row of the CSV file.
+//
+// The function uses a channel for memory-efficient processing of large CSV files,
+// allowing you to process rows one at a time.
+//
+// Example:
+//
+//	file, _ := os.Open("data.csv")
+//	defer file.Close()
+//
+//	records, err := helpers.ParseCSV(file)
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//
+//	for record := range records {
+//		fmt.Println("Row:", record)
+//	}
+//
+//	// With HTTP upload
+//	func UploadHandler(w http.ResponseWriter, r *http.Request) {
+//		file, _, _ := r.FormFile("csv")
+//		records, _ := helpers.ParseCSV(file)
+//		for row := range records {
+//			processRow(row)
+//		}
+//	}
 func ParseCSV(file io.Reader) (chan []string, error) {
 	r := csv.NewReader(file)
 	records, err := r.ReadAll()
@@ -25,7 +52,17 @@ func ParseCSV(file io.Reader) (chan []string, error) {
 	return result, nil
 }
 
-// ReadFile ...
+// ReadFile reads the entire contents of a file and returns it as a byte slice.
+//
+// Example:
+//
+//	content, err := helpers.ReadFile("config.json")
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//
+//	var config Config
+//	json.Unmarshal(content, &config)
 func ReadFile(path string) ([]byte, error) {
 	f, err := os.Open(path)
 	if err != nil {

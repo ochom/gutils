@@ -1,3 +1,18 @@
+// Package uuid provides unique identifier generation utilities.
+//
+// This package offers functions for generating:
+//   - MongoDB-style 24-character hexadecimal ObjectIDs
+//   - Short, human-readable IDs from integers
+//
+// Example usage:
+//
+//	// Generate a unique ID
+//	id := uuid.New()
+//	fmt.Println(id) // "507f1f77bcf86cd799439011" (24 hex characters)
+//
+//	// Generate a short ID from a sequence number
+//	shortID := uuid.ShortID(12345)
+//	fmt.Println(shortID) // "ABC123" (alphanumeric)
 package uuid
 
 import (
@@ -9,18 +24,39 @@ import (
 	"time"
 )
 
+// objectIDCounter provides incrementing values for ID uniqueness
 var objectIDCounter = readRandomUint32()
 
-// ObjectID ...
+// ObjectID is a 12-byte unique identifier, similar to MongoDB's ObjectID.
 type ObjectID [12]byte
 
-// New ...
+// New generates a new unique identifier as a 24-character hexadecimal string.
+// The ID is time-based with random and counter components for uniqueness.
+//
+// The ID structure (12 bytes):
+//   - Bytes 0-3: Unix timestamp (seconds)
+//   - Bytes 4-8: Random/unique value
+//   - Bytes 9-11: Incrementing counter
+//
+// Example:
+//
+//	// Generate IDs for database records
+//	user := User{
+//		ID:    uuid.New(),
+//		Name:  "Alice",
+//		Email: "alice@example.com",
+//	}
+//
+//	// Generate multiple unique IDs
+//	for i := 0; i < 10; i++ {
+//		fmt.Println(uuid.New())
+//	}
 func New() string {
 	id := new()
 	return hex.EncodeToString(id[:])
 }
 
-// new ...
+// new creates a new ObjectID (internal function).
 func new() ObjectID {
 	var b [12]byte
 

@@ -9,13 +9,24 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// memoryCache implements Cache
+// memoryCache implements the Cache interface using an in-memory map.
+// It provides thread-safe operations and automatic cleanup of expired items.
+//
+// The memory cache is useful for:
+//   - Development and testing without Redis
+//   - Single-instance applications
+//   - Fallback when Redis is unavailable
+//
+// Configuration:
+//   - CACHE_TOTAL_WORKERS: Number of cleanup workers (default: 10)
 type memoryCache struct {
 	cacheWorkers int
 	items        map[string]cacheItem
 	mut          sync.Mutex
 }
 
+// newMemoryCache creates a new in-memory cache instance.
+// It starts a background goroutine that periodically cleans up expired items.
 func newMemoryCache() Cache {
 	c := &memoryCache{
 		cacheWorkers: env.Get("CACHE_TOTAL_WORKERS", 10),

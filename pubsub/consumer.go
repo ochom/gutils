@@ -6,7 +6,7 @@ import (
 	"github.com/streadway/amqp"
 )
 
-// consumer ...
+// consumer implements the Consumer interface for RabbitMQ message consumption.
 type consumer struct {
 	connectionName string
 	url            string
@@ -76,7 +76,34 @@ func (c *consumer) SetTag(tag string) {
 	c.tag = tag
 }
 
-// Create a new consumer instance
+// NewConsumer creates a new consumer for receiving messages from RabbitMQ.
+//
+// Parameters:
+//   - rabbitURL: AMQP connection URL (e.g., "amqp://guest:guest@localhost:5672/")
+//   - queueName: Name of the queue to consume from
+//
+// Default settings:
+//   - durable: true (queue survives broker restart)
+//   - autoAck: true (messages are auto-acknowledged)
+//
+// Example:
+//
+//	// Create a consumer
+//	consumer := pubsub.NewConsumer(
+//		"amqp://guest:guest@localhost:5672/",
+//		"order-queue",
+//	)
+//
+//	// Optional: Bind to an exchange
+//	consumer.SetExchangeName("orders")
+//	consumer.SetRoutingKey("order.created")
+//
+//	// Start consuming (blocks until connection closes)
+//	err := consumer.Consume(func(msg amqp.Delivery) {
+//		var order Order
+//		json.Unmarshal(msg.Body, &order)
+//		processOrder(order)
+//	})
 func NewConsumer(rabbitURL, queueName string) Consumer {
 	return &consumer{
 		url:     rabbitURL,
@@ -86,7 +113,28 @@ func NewConsumer(rabbitURL, queueName string) Consumer {
 	}
 }
 
-// Consume consume messages from the channels
+// Consume starts consuming messages from the queue.
+// This method blocks and calls workerFunc for each received message.
+//
+// The connection is automatically closed when the function returns.
+// Returns an error if connection or channel setup fails.
+//
+// Example:
+//
+//	err := consumer.Consume(func(msg amqp.Delivery) {
+//		log.Info("Received: %s", string(msg.Body))
+//
+//		// Process message
+//		if err := processMessage(msg.Body); err != nil {
+//			log.Error("Failed to process: %v", err)
+//			// If autoAck is false, you can reject or requeue
+//			// msg.Nack(false, true)
+//		}
+//	})
+//
+//	if err != nil {
+//		log.Fatal("Consumer error: %v", err)
+//	}
 func (c *consumer) Consume(workerFunc func(amqp.Delivery)) error {
 	cfg := amqp.Config{
 		Properties: amqp.Table{
