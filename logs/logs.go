@@ -22,6 +22,7 @@ package logs
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"runtime"
@@ -61,15 +62,18 @@ const (
 // Config holds the logging configuration.
 // Custom loggers can be provided for each log level.
 type Config struct {
+	// defaultLogger is used when no specific logger is configured for a level
+	defaultLogger *log.Logger
 	// Loggers maps log levels to custom log.Logger instances
-	Loggers map[LogLevel]*log.Logger
-	// DefaultLogger is used when no specific logger is configured for a level
-	DefaultLogger *log.Logger
+	loggers map[LogLevel]*log.Logger
+	// LogWriters maps log levels to io.Writer instances for output
+	LogWriters map[LogLevel]*io.Writer
 }
 
 var defaultConfig = Config{
-	Loggers:       map[LogLevel]*log.Logger{},
-	DefaultLogger: log.New(os.Stdout, "", log.LstdFlags),
+	defaultLogger: log.New(os.Stdout, "", log.LstdFlags),
+	loggers:       map[LogLevel]*log.Logger{},
+	LogWriters:    map[LogLevel]*io.Writer{},
 }
 
 var logger *Config
@@ -83,16 +87,17 @@ func init() {
 //
 // Example:
 //
-//	// Use default configuration
-//	logs.InitLogger()
+//		// Use default configuration
+//		logs.InitLogger()
 //
-//	// Custom configuration with file logger for errors
-//	errorFile, _ := os.OpenFile("errors.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-//	logs.InitLogger(logs.Config{
-//		Loggers: map[logs.LogLevel]*log.Logger{
-//			logs.ErrorLevel: log.New(errorFile, "", log.LstdFlags),
-//		},
-//	})
+//		// Custom configuration with file logger for errors
+//	 	errorFile, _ := os.OpenFile("errors.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+//	 	defer errorFile.Close()
+//		logs.InitLogger(logs.Config{
+//			LogWriters: map[logs.LogLevel]*io.Writer{
+//				logs.ErrorLevel: errorFile,
+//			},
+//		})
 func InitLogger(config ...Config) {
 	var cfg Config
 	if len(config) == 0 {
@@ -101,8 +106,18 @@ func InitLogger(config ...Config) {
 		cfg = defaultConfig
 	}
 
-	if cfg.DefaultLogger == nil {
-		cfg.DefaultLogger = log.New(os.Stdout, "", log.LstdFlags)
+	if cfg.defaultLogger == nil {
+		cfg.defaultLogger = log.New(os.Stdout, "", log.LstdFlags)
+	}
+
+	// init log writers
+	for level, writer := range cfg.LogWriters {
+		logger := log.New(os.Stdout, "", log.LstdFlags)
+		if writer != nil {
+			logger.SetOutput(*writer)
+		}
+
+		cfg.loggers[level] = logger
 	}
 
 	logger = &cfg
@@ -117,10 +132,10 @@ func print(l LogLevel, s string) {
 		s = fmt.Sprintf("%s %s", file, s)
 	}
 
-	if log, ok := logger.Loggers[l]; ok {
+	if log, ok := logger.loggers[l]; ok {
 		log.Println(s)
 	} else {
-		logger.DefaultLogger.Println(s)
+		logger.defaultLogger.Println(s)
 	}
 }
 
