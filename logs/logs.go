@@ -22,7 +22,6 @@ package logs
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"runtime"
@@ -59,72 +58,10 @@ const (
 	FatalLevel
 )
 
-// Config holds the logging configuration.
-// Custom loggers can be provided for each log level.
-type Config struct {
-	// defaultLogger is used when no specific logger is configured for a level
-	defaultLogger *log.Logger
-	// Loggers maps log levels to custom log.Logger instances
-	loggers map[LogLevel]*log.Logger
-	// LogWriters maps log levels to io.Writer instances for output
-	LogWriters map[LogLevel]*io.Writer
-}
-
-var defaultConfig = Config{
-	defaultLogger: log.New(os.Stdout, "", log.LstdFlags),
-	loggers:       map[LogLevel]*log.Logger{},
-	LogWriters:    map[LogLevel]*io.Writer{},
-}
-
-var logger *Config
-
-func init() {
-	logger = &defaultConfig
-}
-
-// InitLogger initializes the logging system with custom configuration.
-// If no configuration is provided, uses the default configuration.
-//
-// Example:
-//
-//		// Use default configuration
-//		logs.InitLogger()
-//
-//		// Custom configuration with file logger for errors
-//	 	errorFile, _ := os.OpenFile("errors.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-//	 	defer errorFile.Close()
-//		logs.InitLogger(logs.Config{
-//			LogWriters: map[logs.LogLevel]*io.Writer{
-//				logs.ErrorLevel: errorFile,
-//			},
-//		})
-func InitLogger(config ...Config) {
-	var cfg Config
-	if len(config) == 0 {
-		cfg = config[0]
-	} else {
-		cfg = defaultConfig
-	}
-
-	if cfg.defaultLogger == nil {
-		cfg.defaultLogger = log.New(os.Stdout, "", log.LstdFlags)
-	}
-
-	// init log writers
-	for level, writer := range cfg.LogWriters {
-		logger := log.New(os.Stdout, "", log.LstdFlags)
-		if writer != nil {
-			logger.SetOutput(*writer)
-		}
-
-		cfg.loggers[level] = logger
-	}
-
-	logger = &cfg
-}
+var logger = log.New(os.Stdout, "", log.LstdFlags)
 
 // print outputs a log message with file and line number information.
-func print(l LogLevel, s string) {
+func print(s string) {
 	_, file, line, ok := runtime.Caller(2)
 	if ok {
 		s = fmt.Sprintf("%s:%d %s", file, line, s)
@@ -132,11 +69,7 @@ func print(l LogLevel, s string) {
 		s = fmt.Sprintf("%s %s", file, s)
 	}
 
-	if log, ok := logger.loggers[l]; ok {
-		log.Println(s)
-	} else {
-		logger.defaultLogger.Println(s)
-	}
+	logger.Println(s)
 }
 
 // Debug logs a debug message (blue color).
@@ -148,7 +81,7 @@ func print(l LogLevel, s string) {
 //	logs.Debug("Cache hit for key: %s", key)
 //	logs.Debug("Request payload: %v", payload)
 func Debug(format string, args ...any) {
-	print(DebugLevel, fmt.Sprintf("%sDEBUG%s: %s", ColorBlue, ColorReset, fmt.Sprintf(format, args...)))
+	print(fmt.Sprintf("%sDEBUG%s: %s", ColorBlue, ColorReset, fmt.Sprintf(format, args...)))
 }
 
 // Info logs an informational message (green color).
@@ -160,7 +93,7 @@ func Debug(format string, args ...any) {
 //	logs.Info("Connected to database: %s", dbName)
 //	logs.Info("Processing batch of %d items", count)
 func Info(format string, args ...any) {
-	print(InfoLevel, fmt.Sprintf("%sINFO%s: %s", ColorGreen, ColorReset, fmt.Sprintf(format, args...)))
+	print(fmt.Sprintf("%sINFO%s: %s", ColorGreen, ColorReset, fmt.Sprintf(format, args...)))
 }
 
 // Warn logs a warning message (yellow color).
@@ -172,7 +105,7 @@ func Info(format string, args ...any) {
 //	logs.Warn("Deprecated endpoint called: %s", endpoint)
 //	logs.Warn("Retry attempt %d of %d", attempt, maxRetries)
 func Warn(format string, args ...any) {
-	print(WarnLevel, fmt.Sprintf("%sWARN%s: %s", ColorYellow, ColorReset, fmt.Sprintf(format, args...)))
+	print(fmt.Sprintf("%sWARN%s: %s", ColorYellow, ColorReset, fmt.Sprintf(format, args...)))
 }
 
 // Error logs an error message (red color).
@@ -184,7 +117,7 @@ func Warn(format string, args ...any) {
 //	logs.Error("Database query failed: %v", err)
 //	logs.Error("Invalid request from IP %s: %v", ip, err)
 func Error(format string, args ...any) {
-	print(ErrorLevel, fmt.Sprintf("%sERROR%s: %s", ColorRed, ColorReset, fmt.Sprintf(format, args...)))
+	print(fmt.Sprintf("%sERROR%s: %s", ColorRed, ColorReset, fmt.Sprintf(format, args...)))
 }
 
 // Fatal logs a fatal error message (red color) and terminates the program with os.Exit(1).
@@ -202,6 +135,6 @@ func Error(format string, args ...any) {
 //		logs.Fatal("Failed to load configuration: %v", err)
 //	}
 func Fatal(format string, args ...any) {
-	print(FatalLevel, fmt.Sprintf("%sFATAL%s: %s", ColorRed, ColorReset, fmt.Sprintf(format, args...)))
+	print(fmt.Sprintf("%sFATAL%s: %s", ColorRed, ColorReset, fmt.Sprintf(format, args...)))
 	os.Exit(1)
 }
