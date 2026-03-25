@@ -346,3 +346,20 @@ func TransactWithCtx(ctx context.Context, fn ...func(tx *gorm.DB) error) error {
 func Migrate(models ...any) error {
 	return instance.gormDB.AutoMigrate(models...)
 }
+
+// Query executes a raw SQL query and scans the result into a variable of type T.
+// Returns an error if the query fails or if scanning fails.
+//
+// Note: The result is scanned but not returned. Use Raw().Scan() directly if you need the result.
+//
+// Example:
+//
+//	// Execute a query that returns a single value
+//	err := sqlr.Query[int]("SELECT COUNT(*) FROM users WHERE active = ?", true)
+//
+//	// Execute a query with a struct result
+//	err := sqlr.Query[User]("SELECT * FROM users WHERE id = ?", userID)
+func Query[T any](query string, arg ...any) error {
+	var t T
+	return Raw(query, arg...).Scan(&t).Error
+}
