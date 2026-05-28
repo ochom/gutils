@@ -36,6 +36,11 @@ import (
 
 var authSecrete string = "secrete"
 
+// InitAuth initializes the authentication secret key.
+func InitAuth(secret string) {
+	authSecrete = secret
+}
+
 // authClaims is the struct that will be encoded to a JWT.
 type authClaims struct {
 	Data map[string]string `json:"data"`
@@ -120,17 +125,10 @@ func GenerateAuthTokens(data map[string]string, tokenExpiry ...time.Duration) (m
 //
 //	userID := claims["user_id"]
 //	role := claims["role"]
-func GetAuthClaims(token string) (map[string]string, error) {
+func GetAuthClaims(token string) (map[string]string, bool, error) {
 	claims := &authClaims{}
-	tkn, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
+	tkn, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (any, error) {
 		return []byte(authSecrete), nil
 	})
-	if err != nil {
-		return nil, err
-	}
-	if !tkn.Valid {
-		return nil, err
-	}
-
-	return claims.Data, nil
+	return claims.Data, tkn.Valid, err
 }
