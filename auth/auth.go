@@ -41,10 +41,16 @@ func InitAuth(secret string) {
 	authSecrete = secret
 }
 
-// authClaims is the struct that will be encoded to a JWT.
-type authClaims struct {
-	Data map[string]string `json:"data"`
+// Claims is the struct that will be encoded to a JWT.
+type Claims[T any] struct {
+	Data T `json:"data"`
 	jwt.StandardClaims
+}
+
+// TokenResponse represents the structure of the response containing the access and refresh tokens.
+type TokenResponse struct {
+	Token        string `json:"token"`
+	RefreshToken string `json:"refreshToken"`
 }
 
 // GenerateAuthTokens generates both an access token and a refresh token.
@@ -72,7 +78,7 @@ type authClaims struct {
 //		time.Hour,
 //		24*time.Hour,
 //	)
-func GenerateAuthTokens(data map[string]string, tokenExpiry ...time.Duration) (map[string]string, error) {
+func GenerateAuthTokens[T any](data T, tokenExpiry ...time.Duration) (*TokenResponse, error) {
 	accessTokenExpiry := time.Now().Add(time.Hour * 3).Unix()       // 3 hours
 	refreshTokenExpiry := time.Now().Add(time.Hour * 24 * 7).Unix() // 7 days
 	if len(tokenExpiry) > 0 {
@@ -83,7 +89,7 @@ func GenerateAuthTokens(data map[string]string, tokenExpiry ...time.Duration) (m
 		refreshTokenExpiry = time.Now().Add(tokenExpiry[1]).Unix()
 	}
 
-	claims := &authClaims{Data: data}
+	claims := &Claims[T]{Data: data}
 	claims.StandardClaims = jwt.StandardClaims{
 		ExpiresAt: accessTokenExpiry,
 		Issuer:    "ochom",
@@ -104,9 +110,9 @@ func GenerateAuthTokens(data map[string]string, tokenExpiry ...time.Duration) (m
 		return nil, err
 	}
 
-	return map[string]string{
-		"token":        token,
-		"refreshToken": refreshToken,
+	return &TokenResponse{
+		Token:        token,
+		RefreshToken: refreshToken,
 	}, nil
 }
 
@@ -123,12 +129,16 @@ func GenerateAuthTokens(data map[string]string, tokenExpiry ...time.Duration) (m
 //		return unauthorized()
 //	}
 //
-//	userID := claims["user_id"]
-//	role := claims["role"]
-func GetAuthClaims(token string) (map[string]string, bool, error) {
-	claims := &authClaims{}
+//	userID := claims.Data["user_id"]
+//	role := claims.Data["role"]
+func GetAuthClaims[T any](token string) (*T, error) {
+	claims := &Claims[T]{}
 	tkn, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (any, error) {
 		return []byte(authSecrete), nil
 	})
-	return claims.Data, tkn.Valid, err
+	if err != nil || !tkn.Valid {
+		return nil, err
+	}
+
+	return &claims.Data, nil
 }
