@@ -2,6 +2,27 @@
 
 A comprehensive collection of production-ready Go utilities for building modern applications. GUtils provides type-safe abstractions for common tasks including database operations, caching, authentication, messaging, and more.
 
+## Documentation
+
+- Module docs: https://pkg.go.dev/github.com/ochom/gutils
+- Latest version docs: https://pkg.go.dev/github.com/ochom/gutils?tab=doc
+- Package index:
+  - https://pkg.go.dev/github.com/ochom/gutils/arrays
+  - https://pkg.go.dev/github.com/ochom/gutils/auth
+  - https://pkg.go.dev/github.com/ochom/gutils/cache
+  - https://pkg.go.dev/github.com/ochom/gutils/env
+  - https://pkg.go.dev/github.com/ochom/gutils/errors
+  - https://pkg.go.dev/github.com/ochom/gutils/gttp
+  - https://pkg.go.dev/github.com/ochom/gutils/helpers
+  - https://pkg.go.dev/github.com/ochom/gutils/images
+  - https://pkg.go.dev/github.com/ochom/gutils/jsonx
+  - https://pkg.go.dev/github.com/ochom/gutils/logs
+  - https://pkg.go.dev/github.com/ochom/gutils/nosql
+  - https://pkg.go.dev/github.com/ochom/gutils/pubsub
+  - https://pkg.go.dev/github.com/ochom/gutils/sqlr
+  - https://pkg.go.dev/github.com/ochom/gutils/ussd
+  - https://pkg.go.dev/github.com/ochom/gutils/uuid
+
 ## Features
 
 - **Database Abstraction** - Generic CRUD operations for SQL (PostgreSQL, MySQL, SQLite) and NoSQL (MongoDB)
