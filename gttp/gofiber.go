@@ -16,16 +16,16 @@ type fiberClient struct{}
 
 // post sends a POST request to the specified URL.
 func (c *fiberClient) post(url string, headers M, body []byte, timeouts ...time.Duration) (resp *Response, err error) {
-	return c.sendRequest(url, "POST", headers, body, timeouts...)
+	return c.sendRequest(url, POST, headers, body, timeouts...)
 }
 
 // get sends a GET request to the specified URL.
 func (c *fiberClient) get(url string, headers M, timeouts ...time.Duration) (resp *Response, err error) {
-	return c.sendRequest(url, "GET", headers, nil, timeouts...)
+	return c.sendRequest(url, GET, headers, nil, timeouts...)
 }
 
 // sendRequest sends a request to the specified URL.
-func (c *fiberClient) sendRequest(url, method string, headers M, body []byte, timeouts ...time.Duration) (*Response, error) {
+func (c *fiberClient) sendRequest(url string, method RequestMethod, headers M, body []byte, timeouts ...time.Duration) (*Response, error) {
 	timeout := time.Hour
 	if len(timeouts) > 0 {
 		timeout = timeouts[0]
@@ -45,18 +45,18 @@ func (c *fiberClient) sendRequest(url, method string, headers M, body []byte, ti
 }
 
 // makeRequest sends a request to the specified URL.
-func (c *fiberClient) makeRequest(url, method string, headers M, body []byte, timeout time.Duration) *Response {
+func (c *fiberClient) makeRequest(url string, method RequestMethod, headers M, body []byte, timeout time.Duration) *Response {
 	var agent *fiber.Agent
 	switch method {
-	case "POST":
+	case POST:
 		agent = fiber.Post(url)
-	case "GET":
+	case GET:
 		agent = fiber.Get(url)
-	case "DELETE":
+	case DELETE:
 		agent = fiber.Delete(url)
-	case "PUT":
+	case PUT:
 		agent = fiber.Put(url)
-	case "PATCH":
+	case PATCH:
 		agent = fiber.Patch(url)
 	default:
 		err := fmt.Errorf("unknown method: %s", method)
@@ -73,7 +73,7 @@ func (c *fiberClient) makeRequest(url, method string, headers M, body []byte, ti
 	}
 
 	// add request body
-	if method == "POST" || method == "PUT" || method == "PATCH" {
+	if method == POST || method == PUT || method == PATCH {
 		agent.Body(body)
 	}
 
