@@ -131,7 +131,7 @@ func FindAll[T any](filter bson.M) (vs []*T, err error) {
 		return
 	}
 
-	defer cur.Close(ctx)
+	defer func() { _ = cur.Close(ctx) }()
 
 	err = cur.All(ctx, &vs)
 	if err != nil {
@@ -160,7 +160,7 @@ func FindWithLimit[T any](filter bson.M, limit int64) (vs []*T, err error) {
 		return
 	}
 
-	defer cur.Close(ctx)
+	defer func() { _ = cur.Close(ctx) }()
 
 	err = cur.All(ctx, &vs)
 	if err != nil {
@@ -219,7 +219,7 @@ func Pipe[T any](pipeline []bson.M) (vs []*T, err error) {
 		return
 	}
 
-	defer cur.Close(ctx)
+	defer func() { _ = cur.Close(ctx) }()
 
 	err = cur.All(ctx, &vs)
 	if err != nil {

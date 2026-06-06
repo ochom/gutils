@@ -49,23 +49,39 @@ import (
 	"github.com/ochom/gutils/env"
 )
 
+type RequestMethod string
+
+const (
+	GET     RequestMethod = "GET"
+	HEAD    RequestMethod = "HEAD"
+	POST    RequestMethod = "POST"
+	PUT     RequestMethod = "PUT"
+	PATCH   RequestMethod = "PATCH" // RFC 5789
+	DELETE  RequestMethod = "DELETE"
+	CONNECT RequestMethod = "CONNECT"
+	OPTIONS RequestMethod = "OPTIONS"
+	TRACE   RequestMethod = "TRACE"
+)
+
 // Client defines the interface for HTTP client implementations.
 type Client interface {
 	post(url string, headers M, body []byte, timeout ...time.Duration) (resp *Response, err error)
 	get(url string, headers M, timeout ...time.Duration) (resp *Response, err error)
-	sendRequest(url, method string, headers M, body []byte, timeout ...time.Duration) (resp *Response, err error)
+	sendRequest(url string, method RequestMethod, headers M, body []byte, timeout ...time.Duration) (resp *Response, err error)
 }
 
-var client Client
+var (
+	client Client
+)
 
 func init() {
-	switch env.Get("HTTP_CLIENT", "fiber") {
+	switch cl := env.Get("HTTP_CLIENT", "fiber"); cl {
 	case "default":
 		client = new(defaultClient)
 	case "fiber":
 		client = new(fiberClient)
 	default:
-		client = new(fiberClient)
+		panic("Invalid HTTP_CLIENT value: " + cl)
 	}
 }
 
@@ -130,6 +146,6 @@ func Get(url string, headers M, timeout ...time.Duration) (resp *Response, err e
 //		nil,
 //		nil,
 //	)
-func SendRequest(url, method string, headers M, body []byte, timeout ...time.Duration) (resp *Response, err error) {
+func SendRequest(url string, method RequestMethod, headers M, body []byte, timeout ...time.Duration) (resp *Response, err error) {
 	return client.sendRequest(url, method, headers, body, timeout...)
 }

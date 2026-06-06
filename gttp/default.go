@@ -30,17 +30,17 @@ func (*defaultClient) getClient() *http.Client {
 
 // post sends a POST request to the specified URL.
 func (c *defaultClient) post(url string, headers M, body []byte, timeout ...time.Duration) (resp *Response, err error) {
-	return c.sendRequest(url, "POST", headers, body, timeout...)
+	return c.sendRequest(url, POST, headers, body, timeout...)
 }
 
 // get sends a GET request to the specified URL.
 func (c *defaultClient) get(url string, headers M, timeout ...time.Duration) (resp *Response, err error) {
-	return c.sendRequest(url, "GET", headers, nil, timeout...)
+	return c.sendRequest(url, GET, headers, nil, timeout...)
 }
 
 // sendRequest sends a  request to the specified URL.
-func (c *defaultClient) sendRequest(url, method string, headers M, body []byte, timeout ...time.Duration) (resp *Response, err error) {
-	req, err := http.NewRequest(method, url, bytes.NewBuffer(body))
+func (c *defaultClient) sendRequest(url string, method RequestMethod, headers M, body []byte, timeout ...time.Duration) (resp *Response, err error) {
+	req, err := http.NewRequest(string(method), url, bytes.NewBuffer(body))
 	if err != nil {
 		return
 	}
