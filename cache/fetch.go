@@ -6,7 +6,7 @@ import (
 	"github.com/ochom/gutils/jsonx"
 )
 
-// FetchToCache retrieves a typed value from cache or fetches and caches it when missing.
+// Fetch retrieves a typed value from cache or fetches and caches it when missing.
 //
 // When a cached value exists, it is returned immediately and the cache is refreshed
 // asynchronously in the background using fetchFunc (stale-while-revalidate behavior).
@@ -16,10 +16,10 @@ import (
 // Example:
 //
 //	type Profile struct { Name string }
-//	profile := cache.FetchToCache("user:42:profile", 5*time.Minute, func() Profile {
+//	profile := cache.Fetch("user:42:profile", 5*time.Minute, func() Profile {
 //		return fetchProfileFromDB(42)
 //	})
-func FetchToCache[T any](key string, duration time.Duration, fetchFunc func() T) T {
+func Fetch[T any](key string, duration time.Duration, fetchFunc func() T) T {
 	fetchAndSet := func() []byte {
 		result := fetchFunc()
 
