@@ -24,6 +24,8 @@
 //	// sum = 15
 package arrays
 
+import "slices"
+
 // Filter returns a new slice containing only the elements for which the predicate function returns true.
 //
 // The function iterates through each element in the input slice and includes it in the result
@@ -42,13 +44,17 @@ package arrays
 //	adults := arrays.Filter(users, func(u User) bool { return u.Age >= 18 })
 //	// adults = [{Name: "Alice", Age: 25}]
 func Filter[S ~[]E, E any](items S, fn func(E) bool) []E {
-	filteredItems := []E{}
-	for _, value := range items {
-		if fn(value) {
-			filteredItems = append(filteredItems, value)
+	return slices.Collect(func(yield func(E) bool) {
+		for _, value := range items {
+			if !fn(value) {
+				continue
+			}
+
+			if !yield(value) {
+				return
+			}
 		}
-	}
-	return filteredItems
+	})
 }
 
 // Find returns the first element in the slice that satisfies the provided predicate function.
@@ -66,14 +72,13 @@ func Filter[S ~[]E, E any](items S, fn func(E) bool) []E {
 //	users := []User{{Name: "Alice", Age: 25}, {Name: "Bob", Age: 30}}
 //	user := arrays.Find(users, func(u User) bool { return u.Name == "Bob" })
 //	// user = {Name: "Bob", Age: 30}
-func Find[S ~[]E, E any](items S, fn func(E) bool) E {
-	var item E
+func Find[S ~[]E, E any](items S, fn func(E) bool) (i E) {
 	for _, value := range items {
 		if fn(value) {
 			return value
 		}
 	}
-	return item
+	return
 }
 
 // Map transforms each element in the input slice using the provided transformation function

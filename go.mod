@@ -1,6 +1,6 @@
 module github.com/ochom/gutils
 
-go 1.22
+go 1.24
 
 require (
 	github.com/glebarez/sqlite v1.11.0
