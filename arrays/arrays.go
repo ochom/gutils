@@ -45,12 +45,12 @@ import "slices"
 //	// adults = [{Name: "Alice", Age: 25}]
 func Filter[S ~[]E, E any](items S, fn func(E) bool) []E {
 	return slices.Collect(func(yield func(E) bool) {
-		for _, value := range items {
-			if !fn(value) {
+		for i := range items {
+			if !fn(items[i]) {
 				continue
 			}
 
-			if !yield(value) {
+			if !yield(items[i]) {
 				return
 			}
 		}
@@ -73,9 +73,9 @@ func Filter[S ~[]E, E any](items S, fn func(E) bool) []E {
 //	user := arrays.Find(users, func(u User) bool { return u.Name == "Bob" })
 //	// user = {Name: "Bob", Age: 30}
 func Find[S ~[]E, E any](items S, fn func(E) bool) (i E) {
-	for _, value := range items {
-		if fn(value) {
-			return value
+	for i := range items {
+		if fn(items[i]) {
+			return items[i]
 		}
 	}
 	return
@@ -98,8 +98,8 @@ func Find[S ~[]E, E any](items S, fn func(E) bool) (i E) {
 //	// names = ["Alice", "Bob"]
 func Map[S, T any](items []S, fn func(S) T) []T {
 	mappedItems := []T{}
-	for _, value := range items {
-		mappedItems = append(mappedItems, fn(value))
+	for i := range items {
+		mappedItems = append(mappedItems, fn(items[i]))
 	}
 	return mappedItems
 }
@@ -117,8 +117,8 @@ func Map[S, T any](items []S, fn func(S) T) []T {
 //	// result = ["0: a", "1: b", "2: c"]
 func MapIndex[S, T any](items []S, fn func(S, int) T) []T {
 	mappedItems := []T{}
-	for index, value := range items {
-		mappedItems = append(mappedItems, fn(value, index))
+	for i := range items {
+		mappedItems = append(mappedItems, fn(items[i], i))
 	}
 	return mappedItems
 }
@@ -148,8 +148,8 @@ func MapIndex[S, T any](items []S, fn func(S, int) T) []T {
 //	})
 //	// userMap = {"1": "Alice", "2": "Bob"}
 func Reduce[S, T any](items []S, acc T, fn func(S, T) T) T {
-	for _, value := range items {
-		acc = fn(value, acc)
+	for i := range items {
+		acc = fn(items[i], acc)
 	}
 	return acc
 }
@@ -172,7 +172,7 @@ func Reduce[S, T any](items []S, acc T, fn func(S, T) T) T {
 //		sendWelcomeEmail(u.Email)
 //	})
 func ForEach[S any](items []S, fn func(S)) {
-	for _, value := range items {
-		fn(value)
+	for i := range items {
+		fn(items[i])
 	}
 }
