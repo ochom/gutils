@@ -29,9 +29,9 @@ func SQL() *sql.DB {
 }
 
 // Init initializes the global database connection.
-func Init(dialer gorm.Dialector, configs ...*Config) (err error) {
+func Init(configs ...*Config) (err error) {
 	config := parseConfig(configs...)
-	gormDB, sqlDB, err := createPool(dialer, config)
+	gormDB, sqlDB, err := createPool(config)
 	if err != nil {
 		return err
 	}
@@ -44,7 +44,7 @@ func Init(dialer gorm.Dialector, configs ...*Config) (err error) {
 // New creates and returns a new database connection without affecting the global instance.
 func New(dialer gorm.Dialector, cfg ...*Config) (*gorm.DB, *sql.DB, error) {
 	config := parseConfig(cfg...)
-	gormDB, sqlDB, err := createPool(dialer, config)
+	gormDB, sqlDB, err := createPool(config)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -55,8 +55,8 @@ func New(dialer gorm.Dialector, cfg ...*Config) (*gorm.DB, *sql.DB, error) {
 func parseConfig(configs ...*Config) *Config {
 	config := &defaultConfig
 	for _, cfg := range configs {
-		if cfg.Url != "" {
-			config.Url = cfg.Url
+		if cfg.Conn != nil {
+			config.Conn = cfg.Conn
 		}
 
 		if cfg.LogLevel != 0 {
@@ -105,8 +105,8 @@ func getGormConfig(config *Config) *gorm.Config {
 	}
 }
 
-func createPool(conn gorm.Dialector, config *Config) (gormDB *gorm.DB, sqlDB *sql.DB, err error) {
-	gormDB, err = gorm.Open(conn, getGormConfig(config))
+func createPool(config *Config) (gormDB *gorm.DB, sqlDB *sql.DB, err error) {
+	gormDB, err = gorm.Open(config.Conn, getGormConfig(config))
 	if err != nil {
 		return
 	}
