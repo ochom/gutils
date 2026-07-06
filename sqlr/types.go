@@ -3,6 +3,7 @@ package sqlr
 import (
 	"time"
 
+	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
@@ -18,9 +19,8 @@ import (
 //	}
 //	err := sqlr.Init(config)
 type Config struct {
-	// Url is the database connection string
-	// Supports: postgres://, mysql://, or SQLite file path
-	Url string
+	// Conn is the GORM dialector for the database connection
+	Conn gorm.Dialector
 
 	// LogLevel controls GORM's logging verbosity (Silent, Error, Warn, Info)
 	LogLevel logger.LogLevel
@@ -49,7 +49,6 @@ type Config struct {
 
 // defaultConfig provides sensible defaults for database connections.
 var defaultConfig = Config{
-	Url:                    "gorm.db",
 	LogLevel:               logger.Info,
 	MaxIdleConns:           10,
 	MaxOpenConns:           100,

@@ -24,6 +24,8 @@
 //	// sum = 15
 package arrays
 
+import "slices"
+
 // Filter returns a new slice containing only the elements for which the predicate function returns true.
 //
 // The function iterates through each element in the input slice and includes it in the result
@@ -42,13 +44,17 @@ package arrays
 //	adults := arrays.Filter(users, func(u User) bool { return u.Age >= 18 })
 //	// adults = [{Name: "Alice", Age: 25}]
 func Filter[S ~[]E, E any](items S, fn func(E) bool) []E {
-	filteredItems := []E{}
-	for _, value := range items {
-		if fn(value) {
-			filteredItems = append(filteredItems, value)
+	return slices.Collect(func(yield func(E) bool) {
+		for i := range items {
+			if !fn(items[i]) {
+				continue
+			}
+
+			if !yield(items[i]) {
+				return
+			}
 		}
-	}
-	return filteredItems
+	})
 }
 
 // Find returns the first element in the slice that satisfies the provided predicate function.
@@ -66,14 +72,13 @@ func Filter[S ~[]E, E any](items S, fn func(E) bool) []E {
 //	users := []User{{Name: "Alice", Age: 25}, {Name: "Bob", Age: 30}}
 //	user := arrays.Find(users, func(u User) bool { return u.Name == "Bob" })
 //	// user = {Name: "Bob", Age: 30}
-func Find[S ~[]E, E any](items S, fn func(E) bool) E {
-	var item E
-	for _, value := range items {
-		if fn(value) {
-			return value
+func Find[S ~[]E, E any](items S, fn func(E) bool) (i E) {
+	for i := range items {
+		if fn(items[i]) {
+			return items[i]
 		}
 	}
-	return item
+	return
 }
 
 // Map transforms each element in the input slice using the provided transformation function
@@ -93,8 +98,8 @@ func Find[S ~[]E, E any](items S, fn func(E) bool) E {
 //	// names = ["Alice", "Bob"]
 func Map[S, T any](items []S, fn func(S) T) []T {
 	mappedItems := []T{}
-	for _, value := range items {
-		mappedItems = append(mappedItems, fn(value))
+	for i := range items {
+		mappedItems = append(mappedItems, fn(items[i]))
 	}
 	return mappedItems
 }
@@ -112,8 +117,8 @@ func Map[S, T any](items []S, fn func(S) T) []T {
 //	// result = ["0: a", "1: b", "2: c"]
 func MapIndex[S, T any](items []S, fn func(S, int) T) []T {
 	mappedItems := []T{}
-	for index, value := range items {
-		mappedItems = append(mappedItems, fn(value, index))
+	for i := range items {
+		mappedItems = append(mappedItems, fn(items[i], i))
 	}
 	return mappedItems
 }
@@ -143,8 +148,8 @@ func MapIndex[S, T any](items []S, fn func(S, int) T) []T {
 //	})
 //	// userMap = {"1": "Alice", "2": "Bob"}
 func Reduce[S, T any](items []S, acc T, fn func(S, T) T) T {
-	for _, value := range items {
-		acc = fn(value, acc)
+	for i := range items {
+		acc = fn(items[i], acc)
 	}
 	return acc
 }
@@ -167,7 +172,7 @@ func Reduce[S, T any](items []S, acc T, fn func(S, T) T) T {
 //		sendWelcomeEmail(u.Email)
 //	})
 func ForEach[S any](items []S, fn func(S)) {
-	for _, value := range items {
-		fn(value)
+	for i := range items {
+		fn(items[i])
 	}
 }
