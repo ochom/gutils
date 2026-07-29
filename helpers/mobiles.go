@@ -1,12 +1,8 @@
 package helpers
 
 import (
-	"crypto/sha256"
-	"fmt"
 	"strings"
 	"unicode"
-
-	"github.com/ochom/gutils/logs"
 )
 
 // ParseMobile parses a Kenyan phone number and converts it to the international format (254...).
@@ -71,11 +67,9 @@ func ParseMobile(mobile string) (string, bool) {
 //	// Use for anonymous tracking
 //	analytics.Track(helpers.HashPhone(user.Phone), event)
 func HashPhone(phone string) string {
-	h := sha256.New()
-	_, err := h.Write([]byte(phone))
+	h, err := GenerateSha256Hash([]byte(phone))
 	if err != nil {
-		logs.Warn("could not hash the phone: %v", err)
+		return ""
 	}
-
-	return fmt.Sprintf("%x", h.Sum(nil))
+	return h
 }
