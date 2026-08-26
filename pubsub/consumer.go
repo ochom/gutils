@@ -2,6 +2,7 @@ package pubsub
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/streadway/amqp"
 )
@@ -191,8 +192,17 @@ func (c *consumer) Consume(workerFunc func(amqp.Delivery)) error {
 		return fmt.Errorf("failed to consume messages: %s", err.Error())
 	}
 
-	for message := range deliveries {
+	safeConsume := func(message amqp.Delivery) {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("recovered from panic: %v", r)
+			}
+		}()
 		workerFunc(message)
+	}
+
+	for message := range deliveries {
+		safeConsume(message)
 	}
 
 	return fmt.Errorf("consumer closed")

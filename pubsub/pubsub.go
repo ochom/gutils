@@ -107,6 +107,12 @@ type Consumer interface {
 
 // declare create exchange and queue
 func declare(ch *amqp.Channel, exchange, queue, routingKey string, exchangeType ExchangeType) error {
+
+	args := amqp.Table{}
+	if exchangeType == Delayed {
+		args["x-delayed-type"] = "direct"
+	}
+
 	err := ch.ExchangeDeclare(
 		exchange,             // name
 		string(exchangeType), // type
@@ -114,9 +120,7 @@ func declare(ch *amqp.Channel, exchange, queue, routingKey string, exchangeType 
 		false,                // auto-deleted
 		false,                // internal
 		false,                // no-wait
-		amqp.Table{
-			"x-delayed-type": "direct",
-		}, // arguments
+		args,                 // arguments
 	)
 	if err != nil {
 		return fmt.Errorf("exchange Declare: %s", err.Error())
