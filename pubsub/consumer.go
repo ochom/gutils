@@ -3,6 +3,7 @@ package pubsub
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/streadway/amqp"
 )
@@ -137,6 +138,17 @@ func NewConsumer(rabbitURL, queueName string) Consumer {
 //		log.Fatal("Consumer error: %v", err)
 //	}
 func (c *consumer) Consume(workerFunc func(amqp.Delivery)) error {
+	for {
+		err := c.consumeOnce(workerFunc)
+		if err != nil {
+			log.Printf("RabbitMQ consumer stopped: %v", err)
+		}
+
+		time.Sleep(2 * time.Second)
+	}
+}
+
+func (c *consumer) consumeOnce(workerFunc func(amqp.Delivery)) error {
 	cfg := amqp.Config{
 		Properties: amqp.Table{
 			"connection_name": c.connectionName,
@@ -159,6 +171,27 @@ func (c *consumer) Consume(workerFunc func(amqp.Delivery)) error {
 
 	defer func() {
 		_ = ch.Close()
+	}()
+
+	connClosed := conn.NotifyClose(make(chan *amqp.Error, 1))
+	chClosed := ch.NotifyClose(make(chan *amqp.Error, 1))
+	cancelled := ch.NotifyCancel(make(chan string, 1))
+
+	go func() {
+		select {
+		case err := <-connClosed:
+			if err != nil {
+				log.Printf("RabbitMQ connection closed: %v", err)
+			}
+
+		case err := <-chClosed:
+			if err != nil {
+				log.Printf("RabbitMQ channel closed: %v", err)
+			}
+
+		case reason := <-cancelled:
+			log.Printf("RabbitMQ consumer cancelled: %s", reason)
+		}
 	}()
 
 	q, err := ch.QueueDeclare(
@@ -205,5 +238,5 @@ func (c *consumer) Consume(workerFunc func(amqp.Delivery)) error {
 		safeConsume(message)
 	}
 
-	return fmt.Errorf("consumer closed")
+	return fmt.Errorf("connection closed")
 }
