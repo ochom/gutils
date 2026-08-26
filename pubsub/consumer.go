@@ -2,6 +2,8 @@ package pubsub
 
 import (
 	"fmt"
+	"log"
+	"time"
 
 	"github.com/streadway/amqp"
 )
@@ -126,16 +128,33 @@ func NewConsumer(rabbitURL, queueName string) Consumer {
 //
 //		// Process message
 //		if err := processMessage(msg.Body); err != nil {
-//			log.Error("Failed to process: %v", err)
+//			log.Error("Failed to process: %w", err)
 //			// If autoAck is false, you can reject or requeue
 //			// msg.Nack(false, true)
 //		}
 //	})
 //
 //	if err != nil {
-//		log.Fatal("Consumer error: %v", err)
+//		log.Fatal("Consumer error: %w", err)
 //	}
 func (c *consumer) Consume(workerFunc func(amqp.Delivery)) error {
+	multiplier := 1
+	for {
+		err := c.consumeOnce(workerFunc)
+		if err != nil {
+			log.Printf("RabbitMQ consumer stopped: %v", err)
+		}
+
+		multiplier++
+		if multiplier > 10 {
+			multiplier = 1
+		}
+
+		time.Sleep(time.Duration(multiplier) * time.Second)
+	}
+}
+
+func (c *consumer) consumeOnce(workerFunc func(amqp.Delivery)) error {
 	cfg := amqp.Config{
 		Properties: amqp.Table{
 			"connection_name": c.connectionName,
@@ -144,7 +163,7 @@ func (c *consumer) Consume(workerFunc func(amqp.Delivery)) error {
 
 	conn, err := amqp.DialConfig(c.url, cfg)
 	if err != nil {
-		return fmt.Errorf("failed to connect to RabbitMQ: %s", err.Error())
+		return fmt.Errorf("failed to connect to RabbitMQ: %w", err)
 	}
 
 	defer func() {
@@ -153,11 +172,32 @@ func (c *consumer) Consume(workerFunc func(amqp.Delivery)) error {
 
 	ch, err := conn.Channel()
 	if err != nil {
-		return fmt.Errorf("failed to open a channel: %s", err.Error())
+		return fmt.Errorf("failed to open a channel: %w", err)
 	}
 
 	defer func() {
 		_ = ch.Close()
+	}()
+
+	connClosed := conn.NotifyClose(make(chan *amqp.Error, 1))
+	chClosed := ch.NotifyClose(make(chan *amqp.Error, 1))
+	cancelled := ch.NotifyCancel(make(chan string, 1))
+
+	go func() {
+		select {
+		case err := <-connClosed:
+			if err != nil {
+				log.Printf("RabbitMQ connection closed: %v", err)
+			}
+
+		case err := <-chClosed:
+			if err != nil {
+				log.Printf("RabbitMQ channel closed: %v", err)
+			}
+
+		case reason := <-cancelled:
+			log.Printf("RabbitMQ consumer cancelled: %s", reason)
+		}
 	}()
 
 	q, err := ch.QueueDeclare(
@@ -191,9 +231,18 @@ func (c *consumer) Consume(workerFunc func(amqp.Delivery)) error {
 		return fmt.Errorf("failed to consume messages: %s", err.Error())
 	}
 
-	for message := range deliveries {
+	safeConsume := func(message amqp.Delivery) {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("recovered from panic: %v", r)
+			}
+		}()
 		workerFunc(message)
 	}
 
-	return nil
+	for message := range deliveries {
+		safeConsume(message)
+	}
+
+	return fmt.Errorf("message delivery closed")
 }
