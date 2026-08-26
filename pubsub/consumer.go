@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/ochom/gutils/logs"
 	"github.com/streadway/amqp"
 )
 
@@ -163,7 +164,7 @@ func (c *consumer) consumeOnce(workerFunc func(amqp.Delivery)) error {
 
 	conn, err := amqp.DialConfig(c.url, cfg)
 	if err != nil {
-		return fmt.Errorf("failed to connect to RabbitMQ: %w", err)
+		return fmt.Errorf("Queue: [%s], failed to connect to RabbitMQ: %w", c.queue, err)
 	}
 
 	defer func() {
@@ -172,7 +173,7 @@ func (c *consumer) consumeOnce(workerFunc func(amqp.Delivery)) error {
 
 	ch, err := conn.Channel()
 	if err != nil {
-		return fmt.Errorf("failed to open a channel: %w", err)
+		return fmt.Errorf("Queue: [%s], failed to open a channel: %w", c.queue, err)
 	}
 
 	defer func() {
@@ -187,16 +188,16 @@ func (c *consumer) consumeOnce(workerFunc func(amqp.Delivery)) error {
 		select {
 		case err := <-connClosed:
 			if err != nil {
-				log.Printf("RabbitMQ connection closed: %v", err)
+				log.Printf("Queue: [%s], connection closed: %v", c.queue, err)
 			}
 
 		case err := <-chClosed:
 			if err != nil {
-				log.Printf("RabbitMQ channel closed: %v", err)
+				log.Printf("Queue: [%s], channel closed: %v", c.queue, err)
 			}
 
 		case reason := <-cancelled:
-			log.Printf("RabbitMQ consumer cancelled: %s", reason)
+			log.Printf("Queue: [%s], consumer cancelled: %s", c.queue, reason)
 		}
 	}()
 
@@ -209,12 +210,12 @@ func (c *consumer) consumeOnce(workerFunc func(amqp.Delivery)) error {
 		nil,                // arguments
 	)
 	if err != nil {
-		return fmt.Errorf("queue Declare: %s", err.Error())
+		return fmt.Errorf("Queue: [%s], queue Declare: %s", c.queue, err.Error())
 	}
 
 	err = bindQueue(ch, c.exchange, q.Name, c.routingKey)
 	if err != nil {
-		return fmt.Errorf("queue Bind: %s", err.Error())
+		return fmt.Errorf("Queue: [%s], queue Bind: %s", c.queue, err.Error())
 	}
 
 	deliveries, err := ch.Consume(
@@ -228,7 +229,7 @@ func (c *consumer) consumeOnce(workerFunc func(amqp.Delivery)) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("failed to consume messages: %s", err.Error())
+		return fmt.Errorf("Queue: [%s], failed to consume messages: %s", c.queue, err.Error())
 	}
 
 	safeConsume := func(message amqp.Delivery) {
@@ -240,9 +241,10 @@ func (c *consumer) consumeOnce(workerFunc func(amqp.Delivery)) error {
 		workerFunc(message)
 	}
 
+	logs.Info("Connected to Queue: [%s], waiting for messages", c.queue)
 	for message := range deliveries {
 		safeConsume(message)
 	}
 
-	return fmt.Errorf("message delivery closed")
+	return fmt.Errorf("Queue: [%s], message delivery closed", c.queue)
 }
