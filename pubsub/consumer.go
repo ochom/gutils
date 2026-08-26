@@ -195,5 +195,5 @@ func (c *consumer) Consume(workerFunc func(amqp.Delivery)) error {
 		workerFunc(message)
 	}
 
-	return nil
+	return fmt.Errorf("consumer closed")
 }
