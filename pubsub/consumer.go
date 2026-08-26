@@ -187,12 +187,12 @@ func (c *consumer) consumeOnce(workerFunc func(amqp.Delivery)) error {
 		select {
 		case err := <-connClosed:
 			if err != nil {
-				log.Printf("RabbitMQ connection closed: %w", err)
+				log.Printf("RabbitMQ connection closed: %v", err)
 			}
 
 		case err := <-chClosed:
 			if err != nil {
-				log.Printf("RabbitMQ channel closed: %w", err)
+				log.Printf("RabbitMQ channel closed: %v", err)
 			}
 
 		case reason := <-cancelled:
