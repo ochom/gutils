@@ -104,3 +104,26 @@ func (r *redisCache) delete(key string) error {
 
 	return nil
 }
+
+// publish ...
+func (r *redisCache) publish(channel string, message []byte) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+
+	return r.client.Publish(ctx, channel, string(message)).Err()
+}
+
+// subscribe ...
+func (r *redisCache) subscribe(channel string, handler func(message []byte) error) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 200*time.Millisecond)
+	defer cancel()
+
+	for {
+		listener := r.client.Subscribe(ctx, channel)
+		for message := range listener.Channel() {
+			if err := handler([]byte(message.Payload)); err != nil {
+				logs.Error("subscribe: %s", err.Error())
+			}
+		}
+	}
+}
