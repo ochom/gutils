@@ -49,6 +49,8 @@ type Cache interface {
 	set(key string, value []byte, expiry time.Duration) error
 	get(key string) []byte
 	delete(key string) error
+	publish(channel string, message []byte) error
+	subscribe(channel string, handler func(message []byte) error) error
 }
 
 var conn Cache
@@ -137,4 +139,14 @@ func Get(key string) []byte {
 //	cache.Delete("session:" + sessionID)
 func Delete(key string) error {
 	return conn.delete(key)
+}
+
+// Publish sends a message to a Redis channel.
+func Publish(channel string, message []byte) error {
+	return conn.publish(channel, message)
+}
+
+// Consume subscribes to a Redis channel and handles incoming messages.
+func Consume(channel string, handler func(message []byte) error) error {
+	return conn.subscribe(channel, handler)
 }
