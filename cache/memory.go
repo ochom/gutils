@@ -98,3 +98,13 @@ func (m *memoryCache) cleanUp() {
 		<-time.After(time.Second)
 	}
 }
+
+// publish ...
+func (m *memoryCache) publish(channel string, message []byte) error {
+	return fmt.Errorf("publish not supported in memory cache")
+}
+
+// subscribe ...
+func (m *memoryCache) subscribe(channel string, handler func(message []byte) error) error {
+	return fmt.Errorf("subscribe not supported in memory cache")
+}

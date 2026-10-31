@@ -49,10 +49,9 @@ type Config struct {
 
 // defaultConfig provides sensible defaults for database connections.
 var defaultConfig = Config{
-	LogLevel:               logger.Info,
-	MaxIdleConns:           10,
-	MaxOpenConns:           100,
-	MaxConnLifeTime:        time.Hour,
-	MaxConnIdleTime:        time.Minute,
-	SkipDefaultTransaction: true,
+	LogLevel:        logger.Info,
+	MaxIdleConns:    10,
+	MaxOpenConns:    100,
+	MaxConnLifeTime: time.Hour,
+	MaxConnIdleTime: time.Minute,
 }
