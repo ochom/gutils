@@ -83,7 +83,7 @@ func parseConfig(configs ...*Config) *Config {
 			config.SkipDefaultTransaction = cfg.SkipDefaultTransaction
 		}
 
-		cfg.PreparedStatements = cfg.PreparedStatements
+		config.PreparedStatements = cfg.PreparedStatements
 	}
 
 	return config
